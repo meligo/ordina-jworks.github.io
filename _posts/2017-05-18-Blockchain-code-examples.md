@@ -237,12 +237,13 @@ We can then start adding code to the contract.
 ## Getting started with Solidity
 When Ethereum created blockchain 2.0 (addition of smart contracts) they also created Solidity.
 Solidity is now required to write Smart contracts for the ethereum chain.
-A good reference to learn Solidity can be found [here](https://learnxinyminutes.com/docs/solidity/).
+A good reference to learn Solidity can be found [here](https://learnxinyminutes.com/docs/solidity/) or the [Solidity docs](https://solidity.readthedocs.io/en/develop/). 
+If you are creating a token contract please take the [ERC20 token standard](https://theethereum.wiki/w/index.php/ERC20_Token_Standard) into account.
 
 ```
     pragma solidity ^0.4.8;
         
-        contract FirstContract {
+        contract VendingMachine {
             address private owner;
             
             //Executed when contract is uploaded on the chain, so it's a
@@ -338,9 +339,9 @@ Now a short explanation about the code that we have here.
       }
   ```
   
-  We will also need to add `int public stock;` and `uint priceInFinney;` and these will need to be set in the constructor. 
-  I will be setting the stock to 50 and the price to 20. 
-  Finney is a sub unit under ether. 
+  We will also need to add `int public stock;`, `int public maxStock`, `int public minStock` and `uint priceInFinney;` and these will need to be set in the constructor. 
+  I will be setting the stock and maxStock to 50, the minStock to 45(for testing purposes) and the price to 20. 
+  The price is in finney, finney is a sub unit under ether. 
   1 finney is 0.001 ether. 
   Solidity expects us to use wei because that is the smallest unit for ether. 
   We don't give Solidity our data in wei because it just isn't user-friendly because 1 ether is 1000000000000000000 wei. 
@@ -349,12 +350,219 @@ Now a short explanation about the code that we have here.
   
   Now the explanation for the function.
   
+  `` payable `` this is a modifier to allow this method to be paid.
+  
   ``msg.value`` Gives the amount of ether, in wei, that the user send with their transaction. 
   
    ``if(!client.send(change)) throw;`` Try to send the change back to the sender when they send too much. 
     if it fails then revert state to before the call was made.
     
    Then we just lower the stock and that is our first version of the pay method we will add the auto refill and distribution between stakeholder and contract in a later step. 
+
+```
+  function resupply(int amount) payable returns (int) {
+  if(amount<=0 && stock + amount > maxStock) throw;
+  
+  stock += amount;
+          
+    return stock;
+  }
+ ```
+ 
+This is a pretty straight forward function. 
+First we check if the amount given is bigger then zero and then we will check if the maxStock isn't exceeded by adding the amount to the current stock. 
+Then we add the amount to the stock. 
+The supplier will be added later as another contract.
+Now that we have the resupply function we can add the automatic resupply functionality ot the pay method.
+ 
+```
+  if(stock == minStock) this.resupply(maxStock-stock);
+```
+
+Add this below the `stock--;`. 
+We check our new stock if it equals our minStock. 
+ If it does we then call our resupply function to fill to maxStock again.
+ 
+The next step is adding our stakeholders. 
+
+```
+  function divideProfit() internal{
+          uint profit = (finneyPrice * 1 finney)/2;
+          uint share = profit / stakeholders.length;
+          
+          for(uint x = 0; x < stakeholders.length; x++) {
+              if(!stakeholders[x].send(share)) throw;
+          }
+  }
+ ```
+ 
+Here we use the `internal` modifier to make sure users can't call them from the chain directly.
+First we take half to keep on the machine although we don't need it yet. 
+Then we will also need to create an array of stakeholders `address[] private stakeholders;` 
+Then we divide the profit by the amount of stakeholders (don't worry about dividing by 0).
+End we will run a loop through the array and try to send the shares to the stakeholders.
+Then we still need to add the function to the pay method.
+
+```
+
+if(stock != maxStock && stakeholders.length > 0)
+    divideProfit();
+
+```
+
+Add this above the `stock--;`.
+The `stock!=maxStock` is to make sure when we add the supplier we will have enough money to pay him because we only get the money from the client after the pay function has been executed. <-- change this if contract test worked
+Here we also prevent the divide by 0 problem.
+
+You can go even more advanced with this if different stakeholders have a bigger stake then others. 
+I would then recommend to use a [struct](https://solidity.readthedocs.io/en/develop/structure-of-a-contract.html#structs-types) in combination with [mapping](http://solidity.readthedocs.io/en/develop/types.html#mappings).
+Then use the struct as valuetype for the mapping and the address as the key type.
+
+Now we will need to create the supplier contract.
+This can be in the same file. 
+
+```
+
+contract Supplier {
+
+    address owner;
+    uint public priceInFinney;
+
+    /* this function is executed at initialization and sets the owner of the contract */
+    function Supplier() { 
+        owner = msg.sender;
+        priceInFinney = 10;
+    }
+    
+    function withdrawAll(){
+        if(!owner.send(this.balance)) throw;
+    }
+    
+    function withdraw(int amountInFinney){
+        if(!owner.send(uint256(amountInFinney * 1 finney))) throw;
+    }
+
+    /* Function to recover the funds on the contract */
+    function kill() onlyOwner()  {
+        selfdestruct(owner); 
+    }
+    
+
+    
+    function setPrice(uint newPriceInFinney){
+        priceInFinney = newPriceInFinney;
+    }
+    
+    
+   function () payable {
+        
+    }
+}
+
+```
+
+This is a pretty basic contract that has the price of the product from this supplier and a withdraw functionality to withdraw the money to the owner account.
+`this.balance` is built in to get the balance of a contract.
+
+We will need to make some changes to the first contract. 
+We need to add a place to store the supplier contract `Supplier s;` and the supplier contract address.
+Then we will make a method to set this supplier.
+
+```
+
+function setSupplier(address a) {
+        supplier = a;
+        s = Supplier(supplier);
+}
+
+```
+
+In the resupply method we will now add this line under the first if.
+
+```
+if(!supplier.send((uint256(amount) * (s.priceInFinney() * 1 finney)))) throw;
+```
+
+Here we try to pay the supplier by getting the price the supplier is asking with `s.priceInFinney()` and making it a wei value by multiplying by 1 finney and multiplying that by the amount we want to order. 
+If it fails we will revert state to before the call was done.
+
+Now for the security part now we were protecting some of our functions with an if statement like `if(msg.sender == owner)` but there is a better way to do this.
+We can use [modifiers](http://solidity.readthedocs.io/en/develop/common-patterns.html#restricting-access).
+
+```
+modifier onlyOwner(){
+        if(owner == msg.sender){
+            _;
+        }
+        throw;
+    }
+```
+
+We just us the if in the modifier and if it passes we continue to the function the user requested with `_;`. 
+To use this modifier we just add after the function name and brackets.
+
+```
+
+function kill() onlyOwner()  {
+    selfdestruct(owner); 
+}
+
+```
+
+We can then remove the if-statements and replace them like you can see in the example above.
+With these modifiers we can also create an account system. 
+
+```
+
+modifier restrictAccessTo(address[] _collection){
+        for(uint i = 0; i < _collection.length; i++) {
+            if (_collection[i] == msg.sender) {
+                _;
+                return;
+            }
+        }
+        
+        if(msg.sender == address(this)) {_;return;}
+        
+        
+        if(msg.value > 0){
+            if(!msg.sender.send(msg.value)) throw;
+        }
+    
+    }
+    
+    function addUser(address user){
+            for(uint x = 0; x < accounts.length; x++) {
+                if (accounts[x] == user) {
+                    throw;
+                }
+            }
+            accounts.push(user);
+            users++;
+        }
+        
+        function removeUser(address user) restrictAccessTo(admins){
+            for(uint x = 0; x < accounts.length; x++) {
+                if (accounts[x] == user) {
+                    //To fill the gap in the array
+                    accounts[x] == accounts[accounts.length-1];
+                    delete accounts[accounts.length-1];
+                    users--;
+                    break;
+                }
+            }
+        }
+
+```
+
+The modifier will restrict access to the array of addresses given to it. 
+Then we use an add function and a remove function to add and remove our users.
+Removing is a litle bit special because when you use `delete x` you get gaps in the array. 
+So I copy the last account in the array over the one I want to remove and the remove the last account.
+You can also do this the with multiple user groups like I did with admins and users or use method overloading.
+
+Then the only thing we are missing are a few getters and setters and than this is basically our PoC contract.
+
 ## Deploying and using the contract
 Show the process.
 Web3j explanation.
