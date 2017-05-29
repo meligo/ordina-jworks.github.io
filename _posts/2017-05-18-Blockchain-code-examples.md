@@ -24,7 +24,7 @@ In this second article about the innovative blockchain technology, we'll cover t
 5. [Working with the Remix IDE](#working-with-the-remix-ide)
 6. [Getting started with Solidity](#getting-started-with-solidity)
 7. [Deploying and using the contract](#deploying-and-using-the-contract)
-8. [Ethereum and Java with web3j](#ethereum-and-Java-with-web3j)
+8. [Ethereum and Java with web3j](#ethereum-and-java-with-web3j)
 9. [Conclusion](#conclusion)
 10. [Recommended reading](#recommended-reading)
 
@@ -591,7 +591,7 @@ The full documentation is available at [GitHub](https://github.com/web3j/web3j) 
 We will give you a brief overview about the most used and basic functions it supports.
 
 ### Converting solidity contract to java class
-First off, one of the biggest advantages of using web3j is that you can make a java class from your contract. This makes the interaction with the contract fairly easy. How great is that!
+First off, one of the biggest advantages of using web3j is that you can make a __java class from your contract__. This makes the interaction with the contract fairly easy. How great is that!
 The process goes as follows: compile the solidity source code to .abi and .bin then create a java class from these 2 files. 
 To do so, you'll need to install [Solidity](https://solidity.readthedocs.io/en/latest/installing-solidity.html) locally with the command `npm install -g solc`.
 Thanks to the solidity we just installed globally with npm we can generate our .abi and .bin files.
@@ -613,7 +613,7 @@ Ok, we've got our smart contract converted to a java class, what now?
 
 
 ### Implementation
-We need to add our dependency.
+We need to add our __dependency__.
 #### Maven
 ```
 Java 8:
@@ -639,12 +639,222 @@ Android:
 Java 8:
 
     compile ('org.web3j:core:2.2.1')
-    
+
 
 Android:
 
     compile ('org.web3j:core-android:2.2.1')
 ```
+
+#### Start client
+Start your Ethereum client if you didn't already have one running.
+```
+geth --rpcapi personal,db,eth,net,web3,parity --rpc --testnet
+```
+
+#### Start requests
+For our purpose we'll make a Web3jService.java class in our spring boot application.
+In this __service__ we will create a simple function to get our client version.
+Note that every transaction on the ethereum chain requires gas to be excuted.
+But this function doesn't require to do a transaction, so you don't have to pay for this function.
+
+ ```java
+@Service
+public class Web3jService {
+    private Web3j web3;
+
+    public Web3jService() {
+        this.web3  = Web3j.build(new HttpService());
+    }
+
+    public String getClientVersion() throws IOException, ExecutionException, InterruptedException {
+        Web3ClientVersion web3ClientVersion = web3.web3ClientVersion().send();
+        String clientVersion = web3ClientVersion.getWeb3ClientVersion();
+        return clientVersion;
+    }
+}
+ ```
+
+ #### Using the converted java class
+Previously we talked about __converting__ a solidity __contract__ to a java class.
+We added this java class to our project in the model folder.
+So let's use this class. 
+In our example the class is called Vending.
+To load our vending contract, we need __credentials__ to sign in on the chain.
+It is recomended to use the credentials of the wallet who uploaded the contract.
+
+
+ ```java
+@Service
+public class Web3jService {
+    private Web3j web3;
+    Vending vendingContract;
+    private Credentials credentials;
+
+    public Web3jService() {
+        this.web3  = Web3j.build(new HttpService());
+        this.credentials  = WalletUtils.loadCredentials("password-of-local-wallet",   "path-to-local-wallet");
+        vendingContract = Vending.load("id-of-contract",web3,credentials, ManagedTransaction.GAS_PRICE, Contract.GAS_LIMIT);
+    }
+
+   ...
+}
+ ```
+#### Calling getters a.k.a. contant methods
+So now we have the contract loaded in our vendingContract object. 
+Let's get some values of the contract. We will create following functions: getStock, getMaxStock and getMinStock. 
+Because we are __not altering the state__ of the contract, but just using __'getters'__ we use the Type property.
+Note that these variables must be __public__ on the solidity contract level and that these are not functions but variables!
+
+ ```java
+    ...
+
+    public Integer getStock() throws IOException, ExecutionException, InterruptedException, CipherException {
+        Type result = vendingContract.stock().get();
+        return Integer.parseInt(result.getValue().toString());
+    }
+
+    public int getMaxStock() throws ExecutionException, InterruptedException {
+        Type result = vendingContract.maxStock().get();
+        return Integer.parseInt(result.getValue().toString());
+    }
+
+    public int getMinStock() throws ExecutionException, InterruptedException {
+        Type result = vendingContract.minStock().get();
+        return Integer.parseInt(result.getValue().toString());
+    }
+    ...
+}
+ ```
+#### Transactions
+So now let's use the famous __transactions__. 
+In our contract is an array in which users are stored through their walletID. This is an extra security check on the contract level. 
+So only users can __invoke__ certain methods. So the function adds a walletID (user) to the array. 
+First we create an Address from the walletID. Then we wait untill there is a __TransactionReceipt__ from the method. 
+A transactionreceipt will be given when the transaction is __mined__ / added to the chain.
+
+ ```java
+    ...
+
+    public boolean addNewUser(String walletID) throws ExecutionException, InterruptedException {
+        Address newAddress = new Address(walletID);
+        //will wait till block is mined, otherwise no transaction receipt
+        TransactionReceipt transactionReceipt= vendingContract.add(newAddress).get();
+        return true;
+    }
+
+    ...
+}
+ ```
+
+ With the transaction above, the person (credentials) who loaded the contract at the start needs to __pay__ for this transaction. Aswell on security level, you want to invoke the transaction from the current __logged in user__. Because there are admins and normal users and they have different permissions. So let's take a look how we can invoke a function from the contract with the __credentials__ of the current user.
+
+ So we'll create a doEthFunction to build our own custom function. We have a pay and setmax value as function.
+
+```java
+    ...
+
+   public int doEthFunction(String currentwalletID,String passwordWallet, String func,int amountStockup) throws InterruptedException, ExecutionException, CipherException, IOException {
+
+        Function function=null;
+        BigInteger ether = Convert.toWei("0.3", Convert.Unit.ETHER).toBigInteger();;
+        BigInteger am = BigInteger.valueOf(amountStockup);
+        int stock = getStock();
+
+        if(func.equalsIgnoreCase("pay")){
+
+            function = new Function("pay", Arrays.<Type>asList(), Collections.<TypeReference<?>>emptyList());
+            ether = Convert.toWei(String.valueOf(getPriceFinneyToEther()), Convert.Unit.ETHER).toBigInteger().add(Transaction.DEFAULT_GAS.multiply(gaslimit));
+            BigDecimal accountBalance = Convert.fromWei(parity.ethGetBalance(currentwalletID,DefaultBlockParameterName.LATEST).send().getBalance().toString() , Convert.Unit.ETHER);
+            //check if there is enough money in the wallet. Transaction would automaticly be discarded from the chain, but now we don't need to wait till transaction is verified.
+            BigDecimal ethersend = new BigDecimal(ether);
+            if(ethersend.compareTo(accountBalance)< 0 ){return getStock();}
+        }else if (func.equalsIgnoreCase("setmax")){
+            if(amountStockup<getStock()){return doReturn(func);}
+            function = new Function("setMaxStock", Arrays.<Type>asList(new Int256(am)), Collections.<TypeReference<?>>emptyList());
+            ether = Convert.toWei("0.0", Convert.Unit.ETHER).toBigInteger();
+        }
+
+        //unlock accounts
+        PersonalUnlockAccount currentacc = parity.personalUnlockAccount(currentwalletID,passwordWallet, duration).send();
+        if(currentacc==null){
+            System.out.println("CurrentAccount is null!");
+            return doReturn(func);
+        }
+        if (currentacc.accountUnlocked()) {
+
+            EthGetTransactionCount ethGetTransactionCount = web3.ethGetTransactionCount(currentwalletID, DefaultBlockParameterName.LATEST).sendAsync().get();
+            BigInteger nonce = ethGetTransactionCount.getTransactionCount();
+            String encodedFunction = FunctionEncoder.encode(function);
+            org.web3j.protocol.core.methods.request.Transaction transaction = org.web3j.protocol.core.methods.request.Transaction.createFunctionCallTransaction(currentwalletID, nonce, Transaction.DEFAULT_GAS, gaslimit, BlockchainLocalSettings.VENDING_CONTRACT, ether, encodedFunction);
+            org.web3j.protocol.core.methods.response.EthSendTransaction transactionResponse =parity.personalSignAndSendTransaction(transaction,passwordWallet).send();
+            final String transactionHash = transactionResponse.getTransactionHash();
+            if (transactionHash == null) {
+                System.out.println(transactionResponse.getError().getMessage());
+                return doReturn(func);
+            }
+            EthGetTransactionReceipt transactionReceipt = null;
+            //todo: indien niet toegevoegd door error moet deze niet wachten op de transactionreceipt. Dus een timeout hierop plaatsen?
+            do {
+                transactionReceipt = web3.ethGetTransactionReceipt(transactionHash).send();
+            } while (!transactionReceipt.getTransactionReceipt().isPresent());
+
+            return doReturn(func);
+        }else{
+            System.out.println("account is locked");
+            return doReturn(func);
+        }
+
+
+    }
+
+    public int doReturn(String function) throws InterruptedException, ExecutionException, CipherException, IOException {
+        if(function.equalsIgnoreCase("pay")){
+            return getStock();
+        }else if(function.equalsIgnoreCase("setmax")){
+            return getMaxStock();
+        } else {
+            return 0;
+        }
+    }
+
+    public int setMaxStock(int amount, String currentwalletID, String passwordWallet) throws InterruptedException, ExecutionException, CipherException, IOException {
+        return doEthFunction(currentwalletID,passwordWallet,"setmax",amount);
+    }
+
+    public int buyOne(String currentwalletID,String passwordWallet) throws IOException, CipherException, ExecutionException, InterruptedException {
+        return doEthFunction(currentwalletID,passwordWallet,"pay",0);
+    }
+    ...
+}
+ ```
+
+Wouldn't it be great if we could observe our blocks and trasactions? Of course! This is not a problem with the web3j. Following function will subscribe and print some information about the transactions.
+```java
+...
+public void subscribeToTransactionsandBlocks(){
+        System.out.println("started subscription");
+        //pending transactions that are not yet added to the chain
+        subscription = web3.pendingTransactionObservable().subscribe(tx -> {
+            System.out.println("Following transaction is pending: " + tx.getHash());
+        });
+
+        //Transactions who are added to the blockchain
+        subscription1 = web3.transactionObservable().subscribe(tx -> {
+            System.out.println("Transaction is added to the blockchain: " + tx.getHash());
+        });
+
+        subscription2 = web3.blockObservable(false).subscribe(block -> {
+        //Every transaction in the block
+            for (EthBlock.TransactionResult transactionResult:
+                    block.getBlock().getTransactions() ) {
+                System.out.println("transaction in block equals: " + transactionResult.get().hashCode());
+            }
+        });
+
+    }
+...
+ ```
 
 # Conclusion
 
