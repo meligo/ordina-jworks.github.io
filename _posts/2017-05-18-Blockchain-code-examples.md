@@ -562,24 +562,50 @@ You can also do this the with multiple user groups like I did with admins and us
 
 Then the only thing we are missing are a few getters and setters and than this is basically our PoC contract.
 
+//TODO add pictures
 ## Deploying and using the contract
 There are three options we will discuss when it comes to deploying the contract.
 
-### From Mist
+### Deploy
+
+#### From Mist
 This is what I recommend to use when you want to upload a contract to the blockchain.
 You simply go to the contract section and then select Deploy new contract. 
 Then you select the account you want to use to upload the contract and you paste the source code of the contract you want to use in the designated section.
 You select the contract in the dropdown and press deploy.
+You will then see that Mist is asking for confirmation that you want to deploy the contract.
+You need to answer your password and maybe you will need to alter the amount of gas added to the contract.
 
 If a contract you want to use is already on the chain then you can use the watch contract feature. 
 You will need the address and the abi from the contract to be able to watch it.
+The abi can be found in remix under the contract section on the rightside under the contract.
+Then select "Contract details (bytecode, interface etc.)" and then you can see it in the interface section.
+Once you watch it you can use it like any other contract.
 
-### From Remix
-You can directly upload the contract from the Remix IDE. 
+#### From Remix
+You can directly upload the contract from the Remix IDE by going to the contract section on the rightside of the screen. 
+There you expand the contract you want to use and press the (red) create button.
+The mist transaction box wil then popup where you need to enter your password and if necessary also adjust the amount of gas you add to the contract.
+When the contract was deployed succesfully you will get the address of the contract returned to you.
 
+#### From commandline
+I recommend you use Remix to compile the contract before you use the commandline, but the commandline can also do the compiling if you want(as seen [here](https://ethereum.gitbooks.io/frontier-guide/content/compiling_contract.html)).
 
-### From commandline
+Now for deploying it to the chain. 
+You again go to the contract section on the righthand side of the Remix ide and expand the contract you want to deploy. 
+You then click on "Contract details (bytecode, interface etc.)" and go to the web3 deploy section.
+You then enter the two commands displayed seperatly in your javascript console(geth console where you started your chain).
+The console will then show the address once the contract is mined.
 
+### Using a contract.
+I will only show how to use the contract through Mist because through the commandline is really not recommend in my opinion.
+To use the contract with mist you again go to the contract section and select the contract you want to use.
+Here you can then see the public variables of the contract and the methods that are defined in the contract.
+When you selected a contract it will automatically ask for the required parameters. 
+Then press the execute button and you will again bes asked for confirmation with your password.
+Mist does a call to the method before the actual transaction.
+This means it can predict if the transaction will succeed and it will clearly warn you if it wont go trough.
+Please also check that if a transaction is payable and it fails that you may not have given it any ether.
 
 Web3j explanation.
 
