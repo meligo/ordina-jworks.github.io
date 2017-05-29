@@ -3,7 +3,7 @@ layout: post
 authors: [ken_coenen, jeroen_de_prest, kevin_leyssens]
 title: 'Blockchain hands-on'
 image: 
-tags: [Blockchain, Ethereum, Smart contracts, Solidity, Geth]
+tags: [Blockchain, Ethereum, Smart contracts, Solidity, Geth, spring boot, java]
 category: Blockchain
 comments: true
 ---
@@ -24,7 +24,7 @@ In this second article about the innovative blockchain technology, we'll cover t
 5. [Working with the Remix IDE](#working-with-the-remix-ide)
 6. [Getting started with Solidity](#getting-started-with-solidity)
 7. [Deploying and using the contract](#deploying-and-using-the-contract)
-8. [Integration with Spring boot](#integration-with-spring-boot)
+8. [Ethereum and Java with web3j](#ethereum-and-Java-with-web3j)
 9. [Conclusion](#conclusion)
 10. [Recommended reading](#recommended-reading)
 
@@ -607,8 +607,70 @@ Mist does a call to the method before the actual transaction.
 This means it can predict if the transaction will succeed and it will clearly warn you if it wont go trough.
 Please also check that if a transaction is payable and it fails that you may not have given it any ether.
 
-Web3j explanation.
+## Ethereum and Java with web3j
+> Web3j is a lightweight, reactive, type safe Java and Android library for integrating with nodes on Ethereum blockchains.
 
+![image ethereum web3j](https://raw.githubusercontent.com/web3j/web3j/master/docs/source/images/web3j_network.png "json-rpc blockchain java application")
+
+
+The full documentation is available at [GitHub](https://github.com/web3j/web3j) or the [docs](https://docs.web3j.io/) from the web3j website.
+We will give you a brief overview about the most used and basic functions it supports.
+
+### Converting solidity contract to java class
+First off, one of the biggest advantages of using web3j is that you can make a java class from your contract. This makes the interaction with the contract fairly easy. How great is that!
+The process goes as follows: compile the solidity source code to .abi and .bin then create a java class from these 2 files. 
+To do so, you'll need to install [Solidity](https://solidity.readthedocs.io/en/latest/installing-solidity.html) locally with the command `npm install -g solc`.
+Thanks to the solidity we just installed globally with npm we can generate our .abi and .bin files.
+Where \<contract> is the name of our contract and \<output-dir> the directory where you want to store your 2 created files.
+```
+solc <contract>.sol --bin --abi --optimize -o <output-dir>/
+```
+Now we have 2 files, but still no java class.
+Here is where the [Command Line Tools](https://docs.web3j.io/command_line.html) comes in.
+Download and unzip it. 
+Change your directory in the command prompt to the unzipped directory and we are ready to make our java class with following command.
+```
+web3j solidity generate /path/to/<smart-contract>.bin /path/to/<smart-contract>.abi -o /path/to/src/main/java -p com.your.organisation.name
+```
+So now the web3j command line tool has created a .java file from the previous generated .bin and .abi file.
+
+Ok, we've got our smart contract converted to a java class, what now?
+
+
+
+### Implementation
+We need to add our dependency.
+#### Maven
+```
+Java 8:
+
+    <dependency>
+        <groupId>org.web3j</groupId>
+        <artifactId>core</artifactId>
+        <version>2.2.1</version>
+    </dependency>
+
+
+Android: 
+
+    <dependency>
+        <groupId>org.web3j</groupId>
+        <artifactId>core-android</artifactId>
+        <version>2.2.1</version>
+    </dependency>
+```
+
+#### Gradle
+```
+Java 8:
+
+    compile ('org.web3j:core:2.2.1')
+    
+
+Android:
+
+    compile ('org.web3j:core-android:2.2.1')
+```
 
 # Conclusion
 
