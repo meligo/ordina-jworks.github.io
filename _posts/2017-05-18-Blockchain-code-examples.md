@@ -144,6 +144,7 @@ So if you are not using web3j then you can leave parity out.
 
 This then creates this command for me. 
 
+//TODO check commando
 `geth --datadir chaindata --nodiscover --maxpeers 2 --rpcapi "db,eth,net,web3,personal,parity" console`
 
 
@@ -522,8 +523,6 @@ modifier restrictAccessTo(address[] _collection){
             }
         }
         
-        if(msg.sender == address(this)) {_;return;}
-        
         
         if(msg.value > 0){
             if(!msg.sender.send(msg.value)) throw;
@@ -564,7 +563,24 @@ You can also do this the with multiple user groups like I did with admins and us
 Then the only thing we are missing are a few getters and setters and than this is basically our PoC contract.
 
 ## Deploying and using the contract
-Show the process.
+There are three options we will discuss when it comes to deploying the contract.
+
+### From Mist
+This is what I recommend to use when you want to upload a contract to the blockchain.
+You simply go to the contract section and then select Deploy new contract. 
+Then you select the account you want to use to upload the contract and you paste the source code of the contract you want to use in the designated section.
+You select the contract in the dropdown and press deploy.
+
+If a contract you want to use is already on the chain then you can use the watch contract feature. 
+You will need the address and the abi from the contract to be able to watch it.
+
+### From Remix
+You can directly upload the contract from the Remix IDE. 
+
+
+### From commandline
+
+
 Web3j explanation.
 
 
