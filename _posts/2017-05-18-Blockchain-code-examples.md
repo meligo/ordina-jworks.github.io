@@ -773,35 +773,98 @@ A transactionreceipt will be given when the transaction is __mined__ / added to 
 }
  ```
 
- With the transaction above, the person (credentials) who loaded the contract at the start needs to __pay__ for this transaction. Aswell on security level, you want to invoke the transaction from the current __logged in user__. Because there are admins and normal users and they have different permissions. So let's take a look how we can invoke a function from the contract with the __credentials__ of the current user.
+ With the transaction above, the person (credentials) who loaded the contract at the start needs to __pay__ for this transaction. 
+ Aswell on security level, you want to invoke the transaction from the current __logged in user__. 
+ Because there are admins and normal users and they have different permissions. 
+ So let's take a look how we can invoke a function from the contract with the __credentials__ of the current user.
 
- So we'll create a doEthFunction to build our own custom function. We have a pay and setmax value as function.
+ So we'll create a doEthFunction to build our own custom function. 
+ The currentwalletID and passwordWallet are from the current logged in user. 
+ We have a buyOne and setMaxStock function who uses the doEthFunction. 
+ Depending on which function invokes the doEthFunction we create a new function.
+ 
+ The pay method has no incoming parameters, but the setMaxStock has an integer which needs to be the new minimum stock. 
 
+
+
+ ```java
+ ...
+  if(func.equalsIgnoreCase("pay")){
+            function = new Function("pay", Arrays.<Type>asList(), Collections.<TypeReference<?>>emptyList());
+        }else if (func.equalsIgnoreCase("setmax")){
+            function = new Function("setMaxStock", Arrays.<Type>asList(new Int256("amount to set max")), Collections.<TypeReference<?>>emptyList());
+        }
+...
+ ```
+ Before we can invoke these functions with the current logged in user __account__, this account needs to be unlocked. When you create an account, it is by default locked. To __unlock__ accounts we use __parity__. To use parity, we add `Parity parity` as new local variable and add following code to our constructor from the service class: ` this.parity = Parity.build(new HttpService());`. Then we unlock the given walletid and password with parity.
+ ```java
+ ...
+ PersonalUnlockAccount currentacc = parity.personalUnlockAccount(currentwalletID,passwordWallet, duration).send();
+        if(currentacc==null){
+            System.out.println("CurrentAccount doens't exist!");
+            return null;
+        }
+        if (currentacc.accountUnlocked()) {
+            //invoke the function
+        }
+...
+ ```
+When all is good and valid, we can invoke our transaction.
+```java
+...
+            //get nonce
+            EthGetTransactionCount ethGetTransactionCount = web3.ethGetTransactionCount(currentwalletID, DefaultBlockParameterName.LATEST).sendAsync().get();
+            BigInteger nonce = ethGetTransactionCount.getTransactionCount();
+            String encodedFunction = FunctionEncoder.encode(function);
+            //start building transaction
+            org.web3j.protocol.core.methods.request.Transaction transaction = org.web3j.protocol.core.methods.request.Transaction.createFunctionCallTransaction(currentwalletID, nonce, Transaction.DEFAULT_GAS, gaslimit, BlockchainLocalSettings.VENDING_CONTRACT, ether, encodedFunction);
+            org.web3j.protocol.core.methods.response.EthSendTransaction 
+            //sign and send transaction through parity (account is unlocked)
+            transactionResponse =parity.personalSignAndSendTransaction(transaction,passwordWallet).send();
+            final String transactionHash = transactionResponse.getTransactionHash();
+            //if the hash is null it means the transaction was not succesfull made and send.
+            if (transactionHash == null) {
+                System.out.println(transactionResponse.getError().getMessage());
+                return doReturn(func);
+            }
+            EthGetTransactionReceipt transactionReceipt = null;
+            //keep asking for transaction receipt untill it is not null. So transaction is mined.
+            do {
+                transactionReceipt = web3.ethGetTransactionReceipt(transactionHash).send();
+            } while (!transactionReceipt.getTransactionReceipt().isPresent());
+
+            return doReturn(func);
+...
+```
+
+Beneath you can view all the pieces code from above in 1 function.
 ```java
     ...
+   public int setMaxStock(int amount, String currentwalletID, String passwordWallet) throws InterruptedException, ExecutionException, CipherException, IOException {
+        return doEthFunction(currentwalletID,passwordWallet,"setmax",amount);
+    }
+
+    public int buyOne(String currentwalletID,String passwordWallet) throws IOException, CipherException, ExecutionException, InterruptedException {
+        return doEthFunction(currentwalletID,passwordWallet,"pay",0);
+    }
+
 
    public int doEthFunction(String currentwalletID,String passwordWallet, String func,int amountStockup) throws InterruptedException, ExecutionException, CipherException, IOException {
 
         Function function=null;
-        BigInteger ether = Convert.toWei("0.3", Convert.Unit.ETHER).toBigInteger();;
+        BigInteger ether;
         BigInteger am = BigInteger.valueOf(amountStockup);
         int stock = getStock();
 
         if(func.equalsIgnoreCase("pay")){
-
             function = new Function("pay", Arrays.<Type>asList(), Collections.<TypeReference<?>>emptyList());
-            ether = Convert.toWei(String.valueOf(getPriceFinneyToEther()), Convert.Unit.ETHER).toBigInteger().add(Transaction.DEFAULT_GAS.multiply(gaslimit));
-            BigDecimal accountBalance = Convert.fromWei(parity.ethGetBalance(currentwalletID,DefaultBlockParameterName.LATEST).send().getBalance().toString() , Convert.Unit.ETHER);
-            //check if there is enough money in the wallet. Transaction would automaticly be discarded from the chain, but now we don't need to wait till transaction is verified.
-            BigDecimal ethersend = new BigDecimal(ether);
-            if(ethersend.compareTo(accountBalance)< 0 ){return getStock();}
+            ether = Convert.toWei(String.valueOf("value of a soda"), Convert.Unit.ETHER).toBigInteger().add(Transaction.DEFAULT_GAS.multiply(gaslimit));
         }else if (func.equalsIgnoreCase("setmax")){
-            if(amountStockup<getStock()){return doReturn(func);}
             function = new Function("setMaxStock", Arrays.<Type>asList(new Int256(am)), Collections.<TypeReference<?>>emptyList());
             ether = Convert.toWei("0.0", Convert.Unit.ETHER).toBigInteger();
         }
 
-        //unlock accounts
+        //unlock account
         PersonalUnlockAccount currentacc = parity.personalUnlockAccount(currentwalletID,passwordWallet, duration).send();
         if(currentacc==null){
             System.out.println("CurrentAccount is null!");
@@ -820,7 +883,7 @@ A transactionreceipt will be given when the transaction is __mined__ / added to 
                 return doReturn(func);
             }
             EthGetTransactionReceipt transactionReceipt = null;
-            //todo: indien niet toegevoegd door error moet deze niet wachten op de transactionreceipt. Dus een timeout hierop plaatsen?
+            //keep asking for transaction receipt untill it is not null. So transaction is mined.
             do {
                 transactionReceipt = web3.ethGetTransactionReceipt(transactionHash).send();
             } while (!transactionReceipt.getTransactionReceipt().isPresent());
@@ -843,19 +906,11 @@ A transactionreceipt will be given when the transaction is __mined__ / added to 
             return 0;
         }
     }
-
-    public int setMaxStock(int amount, String currentwalletID, String passwordWallet) throws InterruptedException, ExecutionException, CipherException, IOException {
-        return doEthFunction(currentwalletID,passwordWallet,"setmax",amount);
-    }
-
-    public int buyOne(String currentwalletID,String passwordWallet) throws IOException, CipherException, ExecutionException, InterruptedException {
-        return doEthFunction(currentwalletID,passwordWallet,"pay",0);
-    }
     ...
 }
  ```
 
-Wouldn't it be great if we could observe our blocks and trasactions? Of course! This is not a problem with the web3j. Following function will subscribe and print some information about the transactions.
+But wouldn't it be great if we could observe our blocks and transactions? Of course! This is not a problem with the web3j. Following function will subscribe and print some information about the transactions.
 ```java
 ...
 public void subscribeToTransactionsandBlocks(){
