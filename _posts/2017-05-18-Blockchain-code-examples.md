@@ -159,44 +159,58 @@ geth --datadir chaindata --nodiscover --maxpeers 2 --rpcapi "db,eth,net,web3,per
 
 
 
-Now our node is running we will first create a etherbase. 
-This is where the miner will store its ether. 
-We do this by using the following command. 
+Now our node is running. 
+But we need an etherbase account. 
+On this account the miner will store its mined ether.
+The account will alsoo be the first one created on our chain. 
+We do this by using the following command:
 
-`personal.newAccount("password")`
+```
+personal.newAccount("password")
+```
 
-Because it is the first account this will be the etherbase.
 *Account creation can also be done with [mist](#a-look-at-mist)*
-We can now start the miner. 
 
-`miner.start(4)` 
+We can now start the miner. The miner is needed to add the transactions to the chain. 
+The number four is the amount of threads. 
+It can take some time for the miner to start so __be patient__. 
+You can still use other commands while the miner is starting.
 
-The number four is the amount of threads. It can take some time for the miner to start so **be patient**. 
-You can still other commands while the miner is starting.
+```
+miner.start(4)
+``` 
 
-This how you setup your first node. 
+
+
+Now you know how to setup your first node. 
+Fairly easy right? 
 The same process is used to setup other nodes. 
-If you are setting up multiple nodes on the same network make sure they have a unique `--datadir`, `--port`, `--rpcport` and `--ipcpath`(or diabled `--ipcdisable`). 
+If you are setting up multiple nodes on the same network make sure they have a unique `--datadir`, `--port`, `--rpcport` and `--ipcpath` (or diabled `--ipcdisable`). 
 
-To connect these nodes with `--nodiscover` we need their identification. 
-We get this by using `admin.nodeInfo.enode` I get this returned to me `"enode://de9e751faf75e9e4dc570c35379a4c22281fecec4bbedb1e1f69b230da1946f7f80b286ceab2928fb92fb37ce1eb5ce919bc97005680445c8be300c40349a31c@[::]:30303?discport=0"`. 
-If you are running every node locally you need to alter the port from `[::]:30303` to whatever port you are connecting to(the `[::]` can stay there). 
+To connect these new nodes with the `--nodiscover` flag up on the chain, we need their identification. 
+```
+admin.nodeInfo.enode
+```
+
+Your response should be something similar like this:  `"enode://de9e751faf75e9e4dc570c35379a4c22281fecec4bbedb1e1f69b230da1946f7f80b286ceab2928fb92fb37ce1eb5ce919bc97005680445c8be300c40349a31c@[::]:30303?discport=0"`. 
+
+If you are running every node locally on the same machine you need to alter the port from `[::]:30303` to whatever port you are connecting to (the `[::]` can stay there). 
 If you are running your nodes in a local network then alter  `[::]` to the local ip of the node you are connecting to or the public ip if you are connecting to a node outside of your network. 
-Now to add the actual node you use `admin.addPeer("enode of the peer you want to connect to")` For example this 
+The command to add the nodes is `admin.addPeer("enode of the peer you want to connect to")`. 
 ```
     admin.addPeer("enode://de9e751faf75e9e4dc570c35379a4c22281fecec4bbedb1e1f69b230da1946f7f80b286ceab2928fb92fb37ce1eb5ce919bc97005680445c8be300c40349a31c@192.168.0.2:30303?discport=0")`.
 ```
 
-You can now check that the nodes are connected to each other by using `admin.peers`.
+To check the connected nodes you can use the command `admin.peers`.
 
-We have now setup a private test network with multiple nodes and they are mining (test)ether.
+We have now succesfully setup a private test network with multiple nodes and miners (a miner per node). Note that we are mining test ether and not real ether.
 
 ## A look at Mist
-Mist is a tool to browse and use Dapps(Decentralized Apps). 
-We will be using this more as a UI for our blockchain during our contract testing. 
+Mist is a __tool__ to browse and use Dapps (Decentralized Apps). 
+We will be using this more as a UI for our contract testing on the blockchain. 
 You can download it [here](https://github.com/ethereum/mist/releases) at the bottom of the page.
 
-If you have skipped over the account setup on Geth in the previous section, I will go over that here again but then through Mist.
+If you have skipped over the __account__ setup on Geth in the previous section, don't worry. We will go over that again, but within Mist.
 
 <div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
     <div class="col-md-offset-3 col-md-6" style="padding: 0;">
@@ -204,15 +218,14 @@ If you have skipped over the account setup on Geth in the previous section, I wi
     </div>
 </div>
 
-1. Here our accounts will be displayed when we have them and also their individual balance.
-1. The total balance of all accounts on this node.
-1. The transactions that have been executed by the accounts from this node. 
-I have a few grayed out transaction because they are from other networks I have on my pc.
-1. General information about the network
-      * The top left icon will show the blocks mined. 
-      * The top right shows the amount of peers. 
+1. All our local accounts will be displayed and their individual balance.
+2. The total balance of all accounts on this node.
+3. The transactions that have been executed by the accounts from this node. 
+4. General information about the network
+      * The top left icon will show the aamount of blocks mined. 
+      * The top right icon shows the amount of peers connected. 
       * The middle icon shows the time since the last mined block. 
-    It shows 47 years because our genesis block says it was "mined" at 0 unix time so 01/01/1970. 
+    It will say 47 years because there aren't any blocks mined yet and in our genesis block the timestamp is 0 unix time so 01/01/1970. 
       * The last icon reminds us in red that we are on a private network.
 
 <div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
@@ -221,14 +234,15 @@ I have a few grayed out transaction because they are from other networks I have 
     </div>
 </div>
 
-When you complete the steps shown in the picture then you will see that it created a account called Main account and in brackets Etherbase. 
+When you have completed the steps shown in the picture above, you'll have created an account called Main account and in brackets Etherbase. 
+Except when you have created accounts through __geth__ in the previous part of the article. 
 This means you can now start your miner in Geth. 
 After a while you will see the balance of your account increase. 
 
 ## Working with the Remix IDE
-Remix is the IDE that is included with Mist. 
-You can also use online IDEs but they are exactly the same. 
-They all don't really do that much. 
+Remix is the IDE that is included within Mist. 
+You can also use online IDEs, but they are exactly the same. 
+They all don't really do that much.
 [Here](https://chriseth.github.io/browser-solidity/#version=soljson-latest.js) is an online example.
 
 <div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
@@ -239,14 +253,14 @@ They all don't really do that much.
 
 <div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
     <div class="col-md-offset-3 col-md-6" style="padding: 0;">
-	    {% include image.html img="/img/blockchain/remix-ide.png" alt="remix ide" title="The remix ide" caption="Remix IDE firt open" %}
+	    {% include image.html img="/img/blockchain/remix-ide.png" alt="remix ide" title="The remix ide" caption="Remix IDE first open" %}
     </div>
 </div>
 
-We can then start adding code to the contract. 
+Now we can get started with writing contracts with solidity. 
 
 ## Getting started with Solidity
-When Ethereum created blockchain 2.0 (addition of smart contracts) they also created Solidity.
+When Ethereum created blockchain 2.0 (addition of smart contracts) they created Solidity.
 Solidity is now required to write Smart contracts for the ethereum chain.
 A good reference to learn Solidity can be found [here](https://learnxinyminutes.com/docs/solidity/) or the [Solidity docs](https://solidity.readthedocs.io/en/develop/). 
 If you are creating a token contract please take the [ERC20 token standard](https://theethereum.wiki/w/index.php/ERC20_Token_Standard) into account.
@@ -257,7 +271,7 @@ If you are creating a token contract please take the [ERC20 token standard](http
         contract VendingMachine {
             address private owner;
             
-            //Executed when contract is uploaded on the chain, so it's a
+            //Executed when contract is uploaded on the chain, so it's a constructor
             function FirstContract(){
                 owner = msg.sender;
             }
@@ -277,10 +291,8 @@ If you are creating a token contract please take the [ERC20 token standard](http
 
 ```
 
-This is a valid contract but it won't do anything. 
-For this guide we will be writing a contract similar to our PoC but smaller.
-
-Now a short explanation about the code that we have here. 
+This is a valid contract, but it won't do anything. 
+Now a short explanation about the code above. 
 
 `address private owner;` is a private variable because only this contract needs to know who the owner is.
  
