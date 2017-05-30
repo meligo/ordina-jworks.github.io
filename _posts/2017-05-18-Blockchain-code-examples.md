@@ -818,7 +818,7 @@ When we got the nonce, we'll encode the function and start building the transact
 3. The gas price
 4. The gas limit
 5. The receiver's address (wallet ID).
-6. The amount of ether you wish to send with the transaction
+6. The amount of WEI you wish to send with the transaction (1WEI = 10^18 Ether)
 7. The encoded function
 
 After making a valid transaction we send it to the chain to be mined. 
@@ -827,7 +827,9 @@ We just sign and send the transaction.
 In the response, we'll check for the transactionhash. 
 If this is null we know there was something wrong with the transaction. 
 Some causes may be: not enough ether send, gas limit is below the asked gas, wrong credentials, bad nonce. 
-But if everything was succesfull and valid, the transaction is pending and waiting to be mined. We'll keep asking for the transaction receipt. When it is not null anymore, the transaction is mined.
+But if everything was succesfull and valid, the transaction is pending and waiting to be mined. 
+We'll keep asking for the transaction receipt. 
+When it is not null anymore, the transaction is added to the blockchain.
 
 
 
@@ -839,7 +841,7 @@ But if everything was succesfull and valid, the transaction is pending and waiti
             //encode the function
             String encodedFunction = FunctionEncoder.encode(function);
             //start building transaction
-            org.web3j.protocol.core.methods.request.Transaction transaction = org.web3j.protocol.core.methods.request.Transaction.createFunctionCallTransaction("wallet ID current logged in user", nonce, Transaction.DEFAULT_GAS, gaslimit, "ID vending contract","ether amount", encodedFunction);
+            org.web3j.protocol.core.methods.request.Transaction transaction = org.web3j.protocol.core.methods.request.Transaction.createFunctionCallTransaction("wallet ID current logged in user", nonce, Transaction.DEFAULT_GAS, gaslimit, "ID vending contract","wei amount", encodedFunction);
             org.web3j.protocol.core.methods.response.EthSendTransaction 
             //sign and send transaction through parity (account is unlocked)
             transactionResponse =parity.personalSignAndSendTransaction(transaction,passwordWallet).send();
@@ -892,12 +894,17 @@ When we put all the small pieces of code from above in the service class you'll 
         }
         if (currentacc.accountUnlocked()) {
 
-            EthGetTransactionCount ethGetTransactionCount = web3.ethGetTransactionCount(currentwalletID, DefaultBlockParameterName.LATEST).sendAsync().get();
+            EthGetTransactionCount ethGetTransactionCount = web3.ethGetTransactionCount("wallet ID current logged in user", DefaultBlockParameterName.LATEST).sendAsync().get();
             BigInteger nonce = ethGetTransactionCount.getTransactionCount();
+            //encode the function
             String encodedFunction = FunctionEncoder.encode(function);
-            org.web3j.protocol.core.methods.request.Transaction transaction = org.web3j.protocol.core.methods.request.Transaction.createFunctionCallTransaction(currentwalletID, nonce, Transaction.DEFAULT_GAS, gaslimit, BlockchainLocalSettings.VENDING_CONTRACT, ether, encodedFunction);
-            org.web3j.protocol.core.methods.response.EthSendTransaction transactionResponse =parity.personalSignAndSendTransaction(transaction,passwordWallet).send();
+            //start building transaction
+            org.web3j.protocol.core.methods.request.Transaction transaction = org.web3j.protocol.core.methods.request.Transaction.createFunctionCallTransaction("wallet ID current logged in user", nonce, Transaction.DEFAULT_GAS, gaslimit, "ID vending contract","wei amount", encodedFunction);
+            org.web3j.protocol.core.methods.response.EthSendTransaction 
+            //sign and send transaction through parity (account is unlocked)
+            transactionResponse =parity.personalSignAndSendTransaction(transaction,passwordWallet).send();
             final String transactionHash = transactionResponse.getTransactionHash();
+            //if the hash is null it means the transaction was not succesfull made and send.
             if (transactionHash == null) {
                throw new Exception(transactionResponse.getError().getMessage());
             }
@@ -927,7 +934,21 @@ When we put all the small pieces of code from above in the service class you'll 
 }
  ```
 
-But wouldn't it be great if we could observe our blocks and transactions? Of course! This is not a problem with the web3j. Following function will subscribe and print the hashes from the transactions.
+#### New wallet
+Making a new wallet is done the easiest way with __parity__ in 1 command. You just give a password and it will create the new wallet. In our example we return the address (wallet ID) when creating the new wallet. If you want to send it async you replace the `.send()` by `.sendAsync().get();`.
+
+```java
+    public String makeNewWallet(String password) throws ExecutionException, InterruptedException, IOException {
+        String res = parity.personalNewAccount(password).send().getAccountId();
+        return res;
+    }
+```
+
+#### Observers
+But wouldn't it be great if we could observe our blocks and transactions? 
+Of course! 
+This is not a problem with web3j. 
+Following function will subscribe and print the hashes from the transactions.
 ```java
 ...
 public void subscribeToTransactionsandBlocks(){
