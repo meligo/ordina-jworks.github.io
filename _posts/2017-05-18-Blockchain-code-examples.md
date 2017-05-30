@@ -632,9 +632,7 @@ Change your directory in the command prompt to the unzipped directory and we are
 ```
 web3j solidity generate /path/to/<smart-contract>.bin /path/to/<smart-contract>.abi -o /path/to/src/main/java -p com.your.organisation.name
 ```
-So now the web3j command line tool has created a .java file from the previous generated .bin and .abi file.
 
-Ok, we've got our smart contract converted to a java class, what now?
 
 
 
@@ -681,8 +679,6 @@ geth --rpcapi personal,db,eth,net,web3,parity --rpc --testnet
 #### Start requests
 For our purpose we'll make a Web3jService.java class in our spring boot application.
 In this __service__ we will create a simple function to get our client version.
-Note that every transaction on the ethereum chain requires gas to be excuted.
-But this function doesn't require to do a transaction, so you don't have to pay for this function.
 
  ```java
 @Service
@@ -701,7 +697,7 @@ public class Web3jService {
 }
  ```
 
- #### Using the converted java class
+ #### Using the converted smart contract
 Previously we talked about __converting__ a solidity __contract__ to a java class.
 We added this java class to our project in the model folder.
 So let's use this class. 
@@ -718,7 +714,7 @@ public class Web3jService {
     private Credentials credentials;
 
     public Web3jService() {
-        this.web3  = Web3j.build(new HttpService());
+        this.web3  = Web3j.build(new HttpService());//default http://localhost:8545/
         this.credentials  = WalletUtils.loadCredentials("password-of-local-wallet",   "path-to-local-wallet");
         vendingContract = Vending.load("id-of-contract",web3,credentials, ManagedTransaction.GAS_PRICE, Contract.GAS_LIMIT);
     }
@@ -726,7 +722,7 @@ public class Web3jService {
    ...
 }
  ```
-#### Calling getters a.k.a. contant methods
+#### Calling contant methods a.k.a. getters
 So now we have the contract loaded in our vendingContract object. 
 Let's get some values of the contract. We will create following functions: getStock, getMaxStock and getMinStock. 
 Because we are __not altering the state__ of the contract, but just using __'getters'__ we use the Type property.
@@ -754,8 +750,8 @@ Note that these variables must be __public__ on the solidity contract level and 
  ```
 #### Transactions
 So now let's use the famous __transactions__. 
-In our contract is an array in which users are stored through their walletID. This is an extra security check on the contract level. 
-So only users can __invoke__ certain methods. So the function adds a walletID (user) to the array. 
+Our contract contains an array in which users are stored through their address (wallet ID). This is an extra security check on the contract level. 
+So only users can __invoke__ certain methods. The function addNewUser() adds an address (wallet ID) to the array. 
 First we create an Address from the walletID. Then we wait untill there is a __TransactionReceipt__ from the method. 
 A transactionreceipt will be given when the transaction is __mined__ / added to the chain.
 
@@ -776,11 +772,11 @@ A transactionreceipt will be given when the transaction is __mined__ / added to 
  With the transaction above, the person (credentials) who loaded the contract at the start needs to __pay__ for this transaction. 
  Aswell on security level, you want to invoke the transaction from the current __logged in user__. 
  Because there are admins and normal users and they have different permissions. 
- So let's take a look how we can invoke a function from the contract with the __credentials__ of the current user.
+ Let's take a look how we can invoke a function from the contract with the __credentials__ of the current user.
 
- So we'll create a doEthFunction to build our own custom function. 
+ So we'll create a doEthFunction() to build our own custom function. 
  The currentwalletID and passwordWallet are from the current logged in user. 
- We have a buyOne and setMaxStock function who uses the doEthFunction. 
+ We have a buyOne() and setMaxStock() function who uses the doEthFunction. 
  Depending on which function invokes the doEthFunction we create a new function.
  
  The pay method has no incoming parameters, but the setMaxStock has an integer which needs to be the new minimum stock. 
@@ -796,36 +792,61 @@ A transactionreceipt will be given when the transaction is __mined__ / added to 
         }
 ...
  ```
- Before we can invoke these functions with the current logged in user __account__, this account needs to be unlocked. When you create an account, it is by default locked. To __unlock__ accounts we use __parity__. To use parity, we add `Parity parity` as new local variable and add following code to our constructor from the service class: ` this.parity = Parity.build(new HttpService());`. Then we unlock the given walletid and password with parity.
+ Before we can invoke these functions with the current logged in user __account__, this account needs to be unlocked. When you create an account, it is by default locked. 
+ To __unlock__ accounts we use __parity__. 
+ To use parity, we add `Parity parity` as new local variable and add following code to our constructor from the service class: ` this.parity = Parity.build(new HttpService());`. 
+ Then we unlock the given walletid and password with parity. Which is aswell default set on http://localhost:8545/.
  ```java
  ...
  PersonalUnlockAccount currentacc = parity.personalUnlockAccount(currentwalletID,passwordWallet, duration).send();
-        if(currentacc==null){
-            System.out.println("CurrentAccount doens't exist!");
-            return null;
+        if(currentacc==null){ 
+            throw new Exception("CurrentAccount doens't exist!");
         }
         if (currentacc.accountUnlocked()) {
             //invoke the function
         }
 ...
  ```
-When all is good and valid, we can invoke our transaction.
+When the account is unlocked, we can start making and invoking our transaction. 
+First we need the next available nonce. A quick refresh about the nonce. 
+>The __nonce__ is an increasing numeric value which is used to __uniquely__ identify transactions. 
+A nonce can only be used once and until a transaction is mined, it is possible to send multiple versions of a transaction with the same nonce, however, once mined, any subsequent submissions will be rejected.
+
+When we got the nonce, we'll encode the function and start building the transaction. A transaction needs following paramters:
+1. Address (wallet ID) from the sender
+2. Valid nonce
+3. The gas price
+4. The gas limit
+5. The receiver's address (wallet ID).
+6. The amount of ether you wish to send with the transaction
+7. The encoded function
+
+After making a valid transaction we send it to the chain to be mined. 
+The easiest way to do this is to use parity. 
+We just sign and send the transaction. 
+In the response, we'll check for the transactionhash. 
+If this is null we know there was something wrong with the transaction. 
+Some causes may be: not enough ether send, gas limit is below the asked gas, wrong credentials, bad nonce. 
+But if everything was succesfull and valid, the transaction is pending and waiting to be mined. We'll keep asking for the transaction receipt. When it is not null anymore, the transaction is mined.
+
+
+
 ```java
 ...
-            //get nonce
-            EthGetTransactionCount ethGetTransactionCount = web3.ethGetTransactionCount(currentwalletID, DefaultBlockParameterName.LATEST).sendAsync().get();
+            //get the next available nonce
+            EthGetTransactionCount ethGetTransactionCount = web3.ethGetTransactionCount("wallet ID current logged in user", DefaultBlockParameterName.LATEST).sendAsync().get();
             BigInteger nonce = ethGetTransactionCount.getTransactionCount();
+            //encode the function
             String encodedFunction = FunctionEncoder.encode(function);
             //start building transaction
-            org.web3j.protocol.core.methods.request.Transaction transaction = org.web3j.protocol.core.methods.request.Transaction.createFunctionCallTransaction(currentwalletID, nonce, Transaction.DEFAULT_GAS, gaslimit, BlockchainLocalSettings.VENDING_CONTRACT, ether, encodedFunction);
+            org.web3j.protocol.core.methods.request.Transaction transaction = org.web3j.protocol.core.methods.request.Transaction.createFunctionCallTransaction("wallet ID current logged in user", nonce, Transaction.DEFAULT_GAS, gaslimit, "ID vending contract","ether amount", encodedFunction);
             org.web3j.protocol.core.methods.response.EthSendTransaction 
             //sign and send transaction through parity (account is unlocked)
             transactionResponse =parity.personalSignAndSendTransaction(transaction,passwordWallet).send();
             final String transactionHash = transactionResponse.getTransactionHash();
             //if the hash is null it means the transaction was not succesfull made and send.
             if (transactionHash == null) {
-                System.out.println(transactionResponse.getError().getMessage());
-                return doReturn(func);
+                throw new Exception(transactionResponse.getError().getMessage());
             }
             EthGetTransactionReceipt transactionReceipt = null;
             //keep asking for transaction receipt untill it is not null. So transaction is mined.
@@ -837,7 +858,7 @@ When all is good and valid, we can invoke our transaction.
 ...
 ```
 
-Beneath you can view all the pieces code from above in 1 function.
+When we put all the small pieces of code from above in the service class you'll get following new code:
 ```java
     ...
    public int setMaxStock(int amount, String currentwalletID, String passwordWallet) throws InterruptedException, ExecutionException, CipherException, IOException {
@@ -867,8 +888,7 @@ Beneath you can view all the pieces code from above in 1 function.
         //unlock account
         PersonalUnlockAccount currentacc = parity.personalUnlockAccount(currentwalletID,passwordWallet, duration).send();
         if(currentacc==null){
-            System.out.println("CurrentAccount is null!");
-            return doReturn(func);
+            throw new Exception("CurrentAccount doens't exist, is null!");
         }
         if (currentacc.accountUnlocked()) {
 
@@ -879,19 +899,16 @@ Beneath you can view all the pieces code from above in 1 function.
             org.web3j.protocol.core.methods.response.EthSendTransaction transactionResponse =parity.personalSignAndSendTransaction(transaction,passwordWallet).send();
             final String transactionHash = transactionResponse.getTransactionHash();
             if (transactionHash == null) {
-                System.out.println(transactionResponse.getError().getMessage());
-                return doReturn(func);
+               throw new Exception(transactionResponse.getError().getMessage());
             }
             EthGetTransactionReceipt transactionReceipt = null;
             //keep asking for transaction receipt untill it is not null. So transaction is mined.
             do {
                 transactionReceipt = web3.ethGetTransactionReceipt(transactionHash).send();
             } while (!transactionReceipt.getTransactionReceipt().isPresent());
-
             return doReturn(func);
         }else{
-            System.out.println("account is locked");
-            return doReturn(func);
+            throw new Exception("Account is locked");
         }
 
 
@@ -910,7 +927,7 @@ Beneath you can view all the pieces code from above in 1 function.
 }
  ```
 
-But wouldn't it be great if we could observe our blocks and transactions? Of course! This is not a problem with the web3j. Following function will subscribe and print some information about the transactions.
+But wouldn't it be great if we could observe our blocks and transactions? Of course! This is not a problem with the web3j. Following function will subscribe and print the hashes from the transactions.
 ```java
 ...
 public void subscribeToTransactionsandBlocks(){
