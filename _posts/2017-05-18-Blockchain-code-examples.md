@@ -2,7 +2,7 @@
 layout: post
 authors: [ken_coenen, jeroen_de_prest, kevin_leyssens]
 title: 'Blockchain hands-on'
-image: /img/blockchain/ethereum-solidity.png
+image: /img/blockchain/blockchainHeaderImageHandsOnPNG.png
 tags: [Blockchain, Ethereum, Smart contracts, Solidity, Geth, spring boot, java]
 category: Blockchain
 comments: true
@@ -10,7 +10,7 @@ comments: true
 
 
 > Last time we gave an introduction about blockchain.
-Now we will dive deeper in it and will set up our first blockchain, be coding a smart contract, deploying this contract and implementing it with Java. 
+Now we will dive deeper in it, set up our first blockchain, be coding a smart contract, deploying this contract and implementing it with Java. 
 For this example we won't be deploying it on the Ethereum network, but locally in our development environment.
 
 # Topics
@@ -665,7 +665,11 @@ Most people forget to send ether with the transaction.
 ## Ethereum and Java with web3j
 > Web3j is a lightweight, reactive, type safe Java and Android library for integrating with nodes on Ethereum blockchains.
 
-![image ethereum web3j](https://raw.githubusercontent.com/web3j/web3j/master/docs/source/images/web3j_network.png "json-rpc blockchain java application")
+<div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
+    <div class="col-md-offset-3 col-md-6" style="padding: 0;">
+	    {% include image.html img="/img/blockchain/web3j_network.png" alt="web3j image" title="Explaining the web3j" %}
+    </div>
+</div>
 
 
 The full documentation is available at [GitHub](https://github.com/web3j/web3j) or the [docs](https://docs.web3j.io/) from the web3j website.
