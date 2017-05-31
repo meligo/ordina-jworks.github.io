@@ -2,7 +2,7 @@
 layout: post
 authors: [ken_coenen, jeroen_de_prest, kevin_leyssens]
 title: 'Blockchain hands-on'
-image: 
+image: /img/blockchain/ethereum-solidity.png
 tags: [Blockchain, Ethereum, Smart contracts, Solidity, Geth, spring boot, java]
 category: Blockchain
 comments: true
@@ -192,7 +192,10 @@ To connect these new nodes with the `--nodiscover` flag up on the chain, we need
 admin.nodeInfo.enode
 ```
 
-Your response should be something similar like this:  `"enode://de9e751faf75e9e4dc570c35379a4c22281fecec4bbedb1e1f69b230da1946f7f80b286ceab2928fb92fb37ce1eb5ce919bc97005680445c8be300c40349a31c@[::]:30303?discport=0"`. 
+Your response should be something similar like this:  
+```
+"enode://de9e751faf75e9e4dc570c35379a4c22281fecec4bbedb1e1f69b230da1946f7f80b286ceab2928fb92fb37ce1eb5ce919bc97005680445c8be300c40349a31c@[::]:30303?discport=0"
+``` 
 
 If you are running every node locally on the same machine you need to alter the port from `[::]:30303` to whatever port you are connecting to (the `[::]` can stay there). 
 If you are running your nodes in a local network then alter  `[::]` to the local ip of the node you are connecting to or the public ip if you are connecting to a node outside of your network. 
@@ -208,9 +211,9 @@ We have now succesfully setup a private test network with multiple nodes and min
 ## A look at Mist
 Mist is a __tool__ to browse and use Dapps (Decentralized Apps). 
 We will be using this more as a UI for our contract testing on the blockchain. 
-You can download it [here](https://github.com/ethereum/mist/releases) at the bottom of the page.
+You can download it [here](https://github.com/ethereum/mist/releases).
 
-If you have skipped over the __account__ setup on Geth in the previous section, don't worry. We will go over that again, but within Mist.
+If you have skipped the __account__ setup on Geth in the previous section, don't worry. We will go over that again, but within Mist.
 
 <div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
     <div class="col-md-offset-3 col-md-6" style="padding: 0;">
@@ -222,10 +225,10 @@ If you have skipped over the __account__ setup on Geth in the previous section, 
 2. The total balance of all accounts on this node.
 3. The transactions that have been executed by the accounts from this node. 
 4. General information about the network
-      * The top left icon will show the aamount of blocks mined. 
+      * The top left icon will show the amount of blocks mined. 
       * The top right icon shows the amount of peers connected. 
       * The middle icon shows the time since the last mined block. 
-    It will say 47 years because there aren't any blocks mined yet and in our genesis block the timestamp is 0 unix time so 01/01/1970. 
+    It says 47 years because there aren't any blocks mined yet and in our genesis block the timestamp is 0 unix time so 01/01/1970. 
       * The last icon reminds us in red that we are on a private network.
 
 <div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
@@ -234,16 +237,17 @@ If you have skipped over the __account__ setup on Geth in the previous section, 
     </div>
 </div>
 
-When you have completed the steps shown in the picture above, you'll have created an account called Main account and in brackets Etherbase. 
-Except when you have created accounts through __geth__ in the previous part of the article. 
-This means you can now start your miner in Geth. 
-After a while you will see the balance of your account increase. 
+When you have completed the steps shown in the picture above, you'll have created an account called Main account and in brackets __Etherbase__. 
+The etherbase account is the account where the miner's ether is stored.
+If you have created accounts through __geth__ in the previous part of the article, there already will be an etherbase account. 
+Now start your miner in Geth `miner.start(4)`.
+After the miner is started, the balance of the account increases. 
 
 ## Working with the Remix IDE
 Remix is the IDE that is included within Mist. 
 You can also use online IDEs, but they are exactly the same. 
 They all don't really do that much.
-[Here](https://chriseth.github.io/browser-solidity/#version=soljson-latest.js) is an online example.
+[Here](https://chriseth.github.io/browser-solidity/#version=soljson-latest.js) is an example of an online IDE.
 
 <div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
     <div class="col-md-offset-3 col-md-6" style="padding: 0;">
@@ -257,10 +261,8 @@ They all don't really do that much.
     </div>
 </div>
 
-Now we can get started with writing contracts with solidity. 
-
 ## Getting started with Solidity
-When Ethereum created blockchain 2.0 (addition of smart contracts) they created Solidity.
+When Ethereum created blockchain 2.0 (addition of smart contracts) they created Solidity aswell.
 Solidity is now required to write Smart contracts for the ethereum chain.
 A good reference to learn Solidity can be found [here](https://learnxinyminutes.com/docs/solidity/) or the [Solidity docs](https://solidity.readthedocs.io/en/develop/). 
 If you are creating a token contract please take the [ERC20 token standard](https://theethereum.wiki/w/index.php/ERC20_Token_Standard) into account.
@@ -294,7 +296,7 @@ If you are creating a token contract please take the [ERC20 token standard](http
 This is a valid contract, but it won't do anything. 
 Now a short explanation about the code above. 
 
-`address private owner;` is a private variable because only this contract needs to know who the owner is.
+`address private owner;` is a private variable because only this contract needs to know who the owner is. So we can restrict some functions later.
  
  ```
  function FirstContract(){
@@ -305,7 +307,7 @@ Now a short explanation about the code above.
  
  This is the constructor of the contract. 
  When the contract is added to the chain it will run this function first before the others. 
- For now we are setting our owner to the user that executed the transaction (`msg.sender`).
+ For now we are setting our owner to the user that uploaded the contract (executed the transaction) to the chain (`msg.sender`).
 
  ```
  function kill()  {
@@ -315,9 +317,12 @@ Now a short explanation about the code above.
  
  ```
  
- This function will kill the contract an withdraw the ether that is left on the contract to the owners wallet. 
- The if-statement here is used to be sure only the owner does this.
- 
+ This function will kill the contract and withdraw the ether that is left on the contract to the owners wallet. 
+ The if-statement here is used to be sure only the owner can call this function.
+ Note that in a blockchain nothing can be removed.
+ The selfdestruct command just makes it inaccessible.
+ Every ether you send to a destroyed contracted, you'll lose.
+
   ```
   function (){
     throw;
@@ -325,12 +330,13 @@ Now a short explanation about the code above.
   
   ```
   
-  If someone calls a wrong function they will end in this function and the throw means it will revert state to before the call.
+  If someone calls a wrong function, this function will be initiated. We throw, which means the contract will revert its state to the state it had before the call.
   
   We will now expand the contract following the contract we used in our PoC. 
-  We will create a vending machine contract where a user can buy something and the machine holds half of the ether payed and gives the other half to his stakeholder.
-  When the stock is below a certain point it will ask the supplier for a refill and pay the supplier directly from the contract. 
-  We will then also be implementing some security directly in the contract. 
+  We will create a vending machine contract where a user can buy something.
+  The machine holds half of the ether payed and distributes the other half to his stakeholder.
+  When the stock is below a certain point, the contract (machine) will ask the supplier for a refill and pay the supplier directly from the contract. 
+  We will also be implementing some security directly in the contract. 
   
   The first functionality we will add is paying for a "product". 
   
@@ -362,25 +368,29 @@ Now a short explanation about the code above.
       }
   ```
   
-  We will also need to add `int public stock;`, `int public maxStock`, `int public minStock` and `uint priceInFinney;` and these will need to be set in the constructor. 
-  I will be setting the stock and maxStock to 50, the minStock to 45(for testing purposes) and the price to 20. 
-  The price is in finney, finney is a sub unit under ether. 
-  1 finney is 0.001 ether. 
-  Solidity expects us to use wei because that is the smallest unit for ether. 
-  We don't give Solidity our data in wei because it just isn't user-friendly because 1 ether is 1000000000000000000 wei. 
-  That is wei we use the price in finney and then multiply by 1 finney to get the wei value. 
-  Currencies are also always a uint.
-  
-  Now the explanation for the function.
-  
-  `` payable `` this is a modifier to allow this method to be paid.
-  
-  ``msg.value`` Gives the amount of ether, in wei, that the user send with their transaction. 
-  
-   ``if(!client.send(change)) throw;`` Try to send the change back to the sender when they send too much. 
-    if it fails then revert state to before the call was made.
-    
-   Then we just lower the stock and that is our first version of the pay method we will add the auto refill and distribution between stakeholder and contract in a later step. 
+We will also need to add `int public stock;`, `int public maxStock`, `int public minStock` and `uint priceInFinney;`.
+These variables will need to be initiliazed in the constructor. 
+We'll be setting the stock and maxStock to 50, the minStock to 45(for testing purposes) and the price to 20. 
+The price is in finney. 
+Finney is a sub unit under ether. 
+1 finney is 0.001 ether. 
+Solidity expects us to use wei. 
+Wei is the smallest unit for ether. 
+We won't be giving Solidity our data in wei, because it just isn't user-friendly. 1 ether is 1000000000000000000 wei.
+Or in other words, 1ether is 10^18wei. 
+That is why we use the price in finney. 
+By multiply by 1 finney we get the wei value. 
+Currencies are also always in uint in Solidity.
+
+Now the explanation for the function:
+ * `` payable `` This is a modifier which allows you to send ether with the function.
+ * ``msg.value`` Gives the amount of ether, in wei, that the user send with their transaction. 
+ * ``if(!client.send(change)) throw;`` Send the change back to the sender. 
+If it fails then revert state to before the call was made.
+* `stock--`Lowers the stock.
+
+This is our first version of the pay method. 
+We will expand this method later.
 
 ```
   function resupply(int amount) payable returns (int) {
@@ -394,17 +404,17 @@ Now a short explanation about the code above.
  
 This is a pretty straight forward function. 
 First we check if the amount given is bigger then zero and then we will check if the maxStock isn't exceeded by adding the amount to the current stock. 
-Then we add the amount to the stock. 
-The supplier will be added later as another contract.
-Now that we have the resupply function we can add the automatic resupply functionality ot the pay method.
+Afterwards we add the amount to the stock. 
+Later on we will add a supplier to this function.
+Now that we have the resupply function we can add the automatic resupply functionality in the pay method.
  
 ```
   if(stock == minStock) this.resupply(maxStock-stock);
 ```
 
-Add this below the `stock--;`. 
-We check our new stock if it equals our minStock. 
- If it does we then call our resupply function to fill to maxStock again.
+Add the code above, below the `stock--;` in the pay() method. 
+It is a simple check to see if we reached the minimum stock.
+If it is true, we call our resupply function to fill to maxStock again.
  
 The next step is adding our stakeholders. 
 
@@ -419,30 +429,32 @@ The next step is adding our stakeholders.
   }
  ```
  
-Here we use the `internal` modifier to make sure users can't call them from the chain directly.
-First we take half to keep on the machine although we don't need it yet. 
-Then we will also need to create an array of stakeholders `address[] private stakeholders;` 
+Here we use the `internal` modifier. 
+Functions and state variables using this modifier can only be accessed internally (i.e. from within the current contract or contracts deriving from it), without using this.
+We decided to keep half of the amount in the contracts wallet to buy from the supplier.
+So the other half is the profit that is needed to be divided over the stakeholders. 
+For this we will need to create an array of stakeholders `address[] private stakeholders;` with stakeholders in it.
 Then we divide the profit by the amount of stakeholders (don't worry about dividing by 0).
-End we will run a loop through the array and try to send the shares to the stakeholders.
-Then we still need to add the function to the pay method.
+This amount will be send to every stakeholders through a loop.
+Now we need to add this function to the pay method.
 
 ```
 
-if(stock != maxStock && stakeholders.length > 0)
+if(stakeholders.length > 0)
     divideProfit();
 
 ```
 
-Add this above the `stock--;`.
-The `stock!=maxStock` is to make sure when we add the supplier we will have enough money to pay him because we only get the money from the client after the pay function has been executed. <-- change this if contract test worked
+Add the code above the `stock--;` in the pay method.
 Here we also prevent the divide by 0 problem.
 
-You can go even more advanced with this if different stakeholders have a bigger stake then others. 
-I would then recommend to use a [struct](https://solidity.readthedocs.io/en/develop/structure-of-a-contract.html#structs-types) in combination with [mapping](http://solidity.readthedocs.io/en/develop/types.html#mappings).
+You can go more advanced with this.
+If different stakeholders have a bigger stake then others. 
+We would recommend to use a [struct](https://solidity.readthedocs.io/en/develop/structure-of-a-contract.html#structs-types) in combination with [mapping](http://solidity.readthedocs.io/en/develop/types.html#mappings).
 Then use the struct as valuetype for the mapping and the address as the key type.
 
 Now we will need to create the supplier contract.
-This can be in the same file. 
+This contract can be in the same file as the vending contract. 
 
 ```
 
@@ -484,11 +496,12 @@ contract Supplier {
 
 ```
 
-This is a pretty basic contract that has the price of the product from this supplier and a withdraw functionality to withdraw the money to the owner account.
+This is a pretty basic contract.
+It has the price of the product and a withdraw functionality to withdraw the money to the owner's account.
 `this.balance` is built in to get the balance of a contract.
 
-We will need to make some changes to the first contract. 
-We need to add a place to store the supplier contract `Supplier s;` and the supplier contract address.
+We will need to make some changes to the first Vending contract. 
+Add a place to store the supplier contract and the supplier contract address `Supplier s;`.
 Then we will make a method to set this supplier.
 
 ```
@@ -500,17 +513,23 @@ function setSupplier(address a) {
 
 ```
 
-In the resupply method we will now add this line under the first if.
+Add the code below in the resupply method.
+Just under the first if-method.
 
 ```
 if(!supplier.send((uint256(amount) * (s.priceInFinney() * 1 finney)))) throw;
 ```
 
-Here we try to pay the supplier by getting the price the supplier is asking with `s.priceInFinney()` and making it a wei value by multiplying by 1 finney and multiplying that by the amount we want to order. 
-If it fails we will revert state to before the call was done.
+The method pays the supplier with the price that is defined in the supplier contract.
+We got the price by following command `s.priceInFinney()`.
+Converting the price into wei is done by multiplying by 1 finney.
+Then we multiply that by the amount we want to order. 
+If it fails, we will revert the state to before the call was done.
 
-Now for the security part now we were protecting some of our functions with an if statement like `if(msg.sender == owner)` but there is a better way to do this.
-We can use [modifiers](http://solidity.readthedocs.io/en/develop/common-patterns.html#restricting-access).
+We did some security checks in the contracts.
+These checks were done by simple if-statements. `if(msg.sender == owner)` 
+But there is a better way to do this.
+By using [modifiers](http://solidity.readthedocs.io/en/develop/common-patterns.html#restricting-access).
 
 ```
 modifier onlyOwner(){
@@ -521,8 +540,9 @@ modifier onlyOwner(){
     }
 ```
 
-We just us the if in the modifier and if it passes we continue to the function the user requested with `_;`. 
-To use this modifier we just add after the function name and brackets.
+We just use the if-statement in the modifier.
+When the statement is true we continue to the function the user requested with `_;`. 
+To use this modifier we just add it after the function's name.
 
 ```
 
@@ -532,7 +552,7 @@ function kill() onlyOwner()  {
 
 ```
 
-We can then remove the if-statements and replace them like you can see in the example above.
+Now we can remove the if-statements and add the modifiers instead like you see in the example above.
 With these modifiers we can also create an account system. 
 
 ```
@@ -576,58 +596,71 @@ modifier restrictAccessTo(address[] _collection){
 
 ```
 
-The modifier will restrict access to the array of addresses given to it. 
-Then we use an add function and a remove function to add and remove our users.
-Removing is a litle bit special because when you use `delete x` you get gaps in the array. 
-So I copy the last account in the array over the one I want to remove and the remove the last account.
-You can also do this the with multiple user groups like I did with admins and users or use method overloading.
+Only users that are in the given array, that is passed through a parameter, can access those functions. 
+We'll make an add and remove function to add and remove our users.
+When removing from an array, you will get gaps.
+In order to bypass this problem,  we switch the last account in the array with the one we want to remove and the remove the last account.
+These functions can be used with multiple user groups.
+For example with admins and nomal users.
+Method overloading can be used for this.
 
-Then the only thing we are missing are a few getters and setters and than this is basically our PoC contract.
+You can implement some getters and setters and you'll have a decent basic contract.
 
 //TODO add pictures
 ## Deploying and using the contract
-There are three options we will discuss when it comes to deploying the contract.
+There are multiple ways of deploying a contract.
+We will be discussing 3 of them.
 
 ### Deploy
 
 #### From Mist
-This is what I recommend to use when you want to upload a contract to the blockchain.
-You simply go to the contract section and then select Deploy new contract. 
-Then you select the account you want to use to upload the contract and you paste the source code of the contract you want to use in the designated section.
-You select the contract in the dropdown and press deploy.
-You will then see that Mist is asking for confirmation that you want to deploy the contract.
-You need to answer your password and maybe you will need to alter the amount of gas added to the contract.
+This is the easiest way to upload a contract to the blockchain.
+Simply go to the contract section in Mist.
+Select 'deploy new contract'. 
+Then select the account you want to use to upload the contract.
+In our case this will be the owner in and from the contract.
+Then paste the source code of the contract in the designated section.
+Select the contract in the dropdown and press deploy.
+A confirmation will be asked from Mist.
+Just type the password and we're good and the contract is ready to get mined!
+When uploading huge contracts you'll need to increase the amount of gas added to the contract.
 
-If a contract you want to use is already on the chain then you can use the watch contract feature. 
-You will need the address and the abi from the contract to be able to watch it.
-The abi can be found in remix under the contract section on the rightside under the contract.
-Then select "Contract details (bytecode, interface etc.)" and then you can see it in the interface section.
-Once you watch it you can use it like any other contract.
+There is a watch function in Mist. 
+Which allows us to watch a contract that is already in use on the chain.
+So we can use this contract without uploading it again and creating a new version of this contract. 
+For this to work we'll need the address and the abi from the in-use contract to be able to watch it.
+The abi can be found in remix in the contract section on the rightside under the contract.
+There you can select "Contract details (bytecode, interface etc.)".
+And under the interface section we can get the abi.
 
 #### From Remix
-You can directly upload the contract from the Remix IDE by going to the contract section on the rightside of the screen. 
-There you expand the contract you want to use and press the (red) create button.
-The mist transaction box wil then popup where you need to enter your password and if necessary also adjust the amount of gas you add to the contract.
-When the contract was deployed succesfully you will get the address of the contract returned to you.
+Uploading a contract directly from the Remix IDE is not a problem.
+Go to the contract section on the rightside of the screen. 
+Expand the contract and press the (red) create button.
+The mist transaction box will popup where a password is needed.
+Adjust the amount of gas when needed (only with large contracts).
+When the contract was deployed succesfully, a address of the contract will be returned.
 
 #### From commandline
-I recommend you use Remix to compile the contract before you use the commandline, but the commandline can also do the compiling if you want(as seen [here](https://ethereum.gitbooks.io/frontier-guide/content/compiling_contract.html)).
+It's recommended to use Remix to compile the contract before using the commandline, but the commandline can also do the compiling (as seen [here](https://ethereum.gitbooks.io/frontier-guide/content/compiling_contract.html)).
 
-Now for deploying it to the chain. 
-You again go to the contract section on the righthand side of the Remix ide and expand the contract you want to deploy. 
-You then click on "Contract details (bytecode, interface etc.)" and go to the web3 deploy section.
-You then enter the two commands displayed seperatly in your javascript console(geth console where you started your chain).
-The console will then show the address once the contract is mined.
+Now for deploying it onto the chain through the command line. 
+Let's go again to the contract section on the righthand side of the Remix IDE and expand the contract that is ready to deploy. 
+Click on "Contract details (bytecode, interface etc.)" and go to the web3 deploy section.
+2 commands will be displayed.
+Enther the 2 commands seperately in the javascript (geth) console.
+Once the contract is mined an address will be shown.
 
 ### Using a contract.
-I will only show how to use the contract through Mist because through the commandline is really not recommend in my opinion.
-To use the contract with mist you again go to the contract section and select the contract you want to use.
-Here you can then see the public variables of the contract and the methods that are defined in the contract.
-When you selected a contract it will automatically ask for the required parameters. 
-Then press the execute button and you will again bes asked for confirmation with your password.
+Using the contract and its functions is recommended through Mist for beginners.
+To use the contract with mist go again to the contract section and let's select the contract we want to use.
+The public variables of the contract and the methods that are defined in the contract are shown.
+When selecting a function, mist will automatically ask for the required parameters. 
+Then press the execute button and type in the password.
 Mist does a call to the method before the actual transaction.
-This means it can predict if the transaction will succeed and it will clearly warn you if it wont go trough.
-Please also check that if a transaction is payable and it fails that you may not have given it any ether.
+This means it can predict if the transaction will succeed and it will clearly warn you if it wont succeed.
+When failing, always check if the transaction is payable.
+Most people forget to send ether with the transaction.
 
 ## Ethereum and Java with web3j
 > Web3j is a lightweight, reactive, type safe Java and Android library for integrating with nodes on Ethereum blockchains.
@@ -719,7 +752,7 @@ public class Web3jService {
 }
  ```
 
- #### Using the converted smart contract
+#### Using the converted smart contract
 Previously we talked about __converting__ a solidity __contract__ to a java class.
 We added this java class to our project in the model folder.
 So let's use this class. 
@@ -967,10 +1000,10 @@ Making a new wallet is done the easiest way with __parity__ in 1 command. You ju
 ```
 
 #### Observers
-But wouldn't it be great if we could observe our blocks and transactions? 
+But wouldn't it be great if we could __observe__ our blocks and transactions? 
 Of course! 
 This is not a problem with web3j. 
-Following function will subscribe and print the hashes from the transactions.
+Following function will subscribe and print the __hashes__ from the transactions.
 ```java
 ...
 public void subscribeToTransactionsandBlocks(){
