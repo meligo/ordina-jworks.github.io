@@ -108,8 +108,6 @@ You should save this file as a json file.
 For example `CustomGenesis.json`.
 **Every** node that should connect to your private network should be initialized with your custom genesis file!
 
-//TODO write about bootnodes
-
 To start the initialization of your node you use: 
 
 `geth init /path/to/genesis/file`
@@ -142,12 +140,12 @@ So if you are not using web3j then you can leave parity out.
 
 `--fakepow` this command speeds up the mining process by skipping it, this can be useful for testing contracts but 0x400 is already a low difficulty.
 
+`--networkid 21568` This is the network id for the chain every node that wants to connect to the network will need the same network id.
+    We set our network id in the genesis file.
+
 This then creates this command for me. 
 
-//TODO check commando
 `geth --datadir chaindata --nodiscover --maxpeers 2 --rpcapi "db,eth,net,web3,personal,parity" console`
-
-
 
 Now our node is running we will first create a etherbase. 
 This is where the miner will store its ether. 
