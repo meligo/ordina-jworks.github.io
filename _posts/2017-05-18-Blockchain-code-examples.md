@@ -10,8 +10,9 @@ comments: true
 
 
 > Last time we gave an introduction about blockchain.
-Now we will dive deeper into ** it. We will set up our first blockchain, code a smart contract, deploy this contract and implement it with Java. 
-For this example we won't be deploying it on the Ethereum network, but locally in our development environment **.
+Now we will dive deeper into blockchain. 
+We will set up our first blockchain, code a smart contract, deploy this contract and implement it with Java. 
+For this example we won't be deploying it on the Ethereum network, but locally in our development environment.
 
 # Topics
 
@@ -32,7 +33,7 @@ Following topics will be discussed in our second blockchain article:
 In this post we will teach you how to __setup__ your first __private__ ethereum chain, code your first __smart contract__ and integrate it with spring boot.
 We will be using [Ethereum](https://www.ethereum.org) to create our first blockchain.
 We made this choice because it seemed to be the most user-friendliest and it's pretty well documented for a beginner.
-If you would like to use Hyperledger to create your blockchain, then it is recommended to use the Go programming language to write the [chaincode](https://github.com/IBM-Blockchain/learn-chaincode) ** (IBMs version of Smart contracts).
+If you would like to use Hyperledger to create your blockchain, then it is recommended to use the Go programming language to write the [chaincode](https://github.com/IBM-Blockchain/learn-chaincode) (IBMs version of Smart contracts).
 
 # What do I need?
 We will need a few things to successfully setup a network and create smart contracts.
@@ -51,7 +52,7 @@ Information about the other ones can be found [here](http://ethdocs.org/en/lates
 We use Geth because it is the easiest to setup and to get started with.
 Geth is also the __default__ for Mist.
 Geth had some problems with spam attacks in the late 2016, that's why some people go for Parity.
-Parity didn't have ** these problems because it is faster in reverting states. 
+Parity didn't have these problems because it is faster in reverting states. 
 This is a [heap vs stack problem](https://www.reddit.com/r/ethereum/comments/55v4nk/geth_vs_parity/) that might be solved by the time you are reading this article.
 We will be using a __private test network__, so it won't be a problem.
 
@@ -73,12 +74,12 @@ The fast flag avoids processing the entire history of the Ethereum network, whic
 The recommended range is between 512MB and 2GB. 
 The default is 16MB.
 
-Another one that can be ** very useful is the `--jitvm` flag. 
+Another one that can be very useful is the `--jitvm` flag. 
 This is the just-in-time virtual machine that can do further optimizations. 
 You can read more about that [here](https://blog.ethereum.org/2016/06/02/go-ethereums-jit-evm/)
 
 ### Starting a private network
-First of all, we need to create our __genesis__ block. 
+First of all, we need to create our __genesis__ block.
 This is the __first block__ in the chain. 
 If nodes want to connect to a network they will need the __same__ genesis block.
 Here is an example of a genesis block.
@@ -108,7 +109,7 @@ It's also better to __randomize__ `"nonce" : "0x2285182ebf7fe31c"` to make sure 
 `"difficulty" : "0x400"` can be altered to make it easier or harder to mine a transaction.
 The file should be saved as a __json__ file. 
 For example `CustomGenesis.json`.
-__Every node__ ** that connects to your private network should be initialized with your custom genesis file!
+__Every node__ that connects to your private network should be initialized with your custom genesis file!
 To start the __initialization__ of your node use following command: 
 
 ```
@@ -169,7 +170,8 @@ We do this by using the following command:
 personal.newAccount("password")
 ```
 
-*Account creation can also be done with mist you can jus skip ahead to [here](#a-look-at-mist) if you don't want to use the cmd* **
+*Account creation can also be done with mist. 
+Just skip ahead to [here](#a-look-at-mist) if you don't want to use the cmd.*
 
 We can now start the miner. 
 The miner is needed to add transactions to the chain. 
@@ -197,7 +199,7 @@ The response should be something similar like this:
 ``` 
 
 When running every node locally on the same machine, we need to alter the port from `[::]:30303` to whatever port we are connecting to (the `[::]` can stay there). 
-If we are ** running the nodes in a local network then alter  `[::]` to the __local ip__ of the node we're connecting to or the public ip if we're connecting to a node outside of your network. 
+If we are running the nodes in a local network then we need to alter  `[::]` to the __local ip__ of the node we're connecting to or the public ip if we're connecting to a node outside of your network. 
 The command to add the nodes is `admin.addPeer("enode of the peer you want to connect to")` 
 ```
     admin.addPeer("enode://de9e751faf75e9e4dc570c35379a4c22281fecec4bbedb1e1f69b230da1946f7f80b286ceab2928fb92fb37ce1eb5ce919bc97005680445c8be300c40349a31c@192.168.0.2:30303?discport=0")`
@@ -205,12 +207,14 @@ The command to add the nodes is `admin.addPeer("enode of the peer you want to co
 
 To check the connected nodes use the command `admin.peers`.
 
-We have now succesfully setup a __private__ test network with __multiple nodes__ and miners (a miner per node). Note that we are mining test ether and not real ether. In this setup a miner for each ** node is required.
+We have now successfully setup a __private__ test network with __multiple nodes__ and miners (a miner per node). 
+Note that we are mining test ether and not real ether. 
+In this setup a miner for each node is required.
 
 ## A look at Mist
 Mist is a __tool__ to browse and use Dapps (Decentralized Apps). 
 We will be using this more as a UI for our contract testing on the blockchain. 
-You can ** download it [here](https://github.com/ethereum/mist/releases).
+You can download it [here](https://github.com/ethereum/mist/releases).
 
 If you already have your account in the previous section you don't have to do it again here but it might be useful to see how the interface works.
 
@@ -261,7 +265,7 @@ They all don't really do that much.
 </div>
 
 ## Getting started with Solidity
-When Ethereum created __blockchain 2.0__ (addition of smart contracts) they created __Solidity__ aswell.
+When Ethereum created __blockchain 2.0__ (addition of smart contracts) they created __Solidity__ as well.
 Solidity is now required to write __Smart contracts__ for the ethereum chain.
 A good reference to learn Solidity can be found [here](https://learnxinyminutes.com/docs/solidity/) or the [Solidity docs](https://solidity.readthedocs.io/en/develop/). 
 If you are creating a token contract please take the [ERC20 token standard](https://theethereum.wiki/w/index.php/ERC20_Token_Standard) into account.
@@ -295,7 +299,9 @@ If you are creating a token contract please take the [ERC20 token standard](http
 This is a valid contract, but it won't do anything. 
 Now a short explanation about the code above. 
 
-`address private owner;` is a private variable. Only this contract needs to know who the owner is. The owner is used to restrict some functions later on **.
+`address private owner;` is a private variable. 
+Only this contract needs to know who the owner is. 
+The owner is used to restrict some functions later on.
  
  ```
  function FirstContract(){
@@ -369,7 +375,7 @@ Now a short explanation about the code above.
   ```
   
 We will also need to add `int public stock;`, `int public maxStock`, `int public minStock` and `uint priceInFinney;`.
-These variables will need to be initiliazed in the constructor. 
+These variables will need to be initialized in the constructor. 
 We'll be setting the stock and maxStock to 50, the minStock to 45 (for testing purposes) and the price to 20. 
 The price is in __finney__. 
 Finney is a __sub unit__ under __ether__. 
@@ -384,11 +390,12 @@ By multiply by 1 finney we get the wei value.
 __Currencies__ are also always in __uint__ in Solidity.
 
 Now some explanation of the function:
- * `` payable `` This is a modifier which allows you to send ether with the function. Modifiers will be explained a little further in the article **.
+ * `` payable `` This is a modifier which allows you to send ether with the function. 
+ Modifiers will be explained a little further in the article.
  * ``msg.value`` Gives the amount of ether, in wei, that the user send with their transaction. 
  * ``if(!client.send(change)) throw;`` Send the change back to the sender. 
 If it fails then revert state to before the call was made.
-* `stock--`Lowers the stock.
+* `stock--` Lowers the stock.
 
 This is our first version of the pay method.
 We will expand this method later.
@@ -433,7 +440,7 @@ The next step is adding our stakeholders.
  ```
  
 Here we use the `internal` modifier. 
-Functions and state variables using this modifier can only be accessed __internally__ (i.e. from within the current contract or contracts deriving from it) **.
+Functions and state variables using this modifier can only be accessed __internally__ (i.e. from within the current contract or contracts deriving from it).
 We decided to keep half of the amount in the contracts wallet to buy from the supplier when the stock is at its minimum.
 The other half is the profit.
 We'll be dividing it over the stakeholders. 
@@ -609,7 +616,7 @@ We'll make an add and remove function to add and remove our users.
 When __removing__ from an array, you will get gaps.
 In order to bypass this problem,  we switch the last account in the array with the one we want to remove and then remove the last account.
 These functions can be used with __multiple__ user groups.
-For example with admins and nomal users.
+For example with admins and normal users.
 Method overloading can be used for this.
 
 You can implement some getters and setters and you'll have a decent basic contract.
@@ -655,7 +662,7 @@ There is a __watch function__ in Mist.
 Which allows us to watch a __contract__ that is already __in use__ on the chain.
 So we can use this contract without uploading it again and creating a new version of this contract. 
 For this to work we'll need the address and the abi from the in-use contract to be able to watch it.
-The abi can be found in remix in the contract section on the rightside under the contract.
+The abi can be found in remix in the contract section on the right side under the contract.
 There we can select "Contract details (bytecode, interface etc.)".
 And under the interface section we can get the abi.
 
@@ -667,20 +674,20 @@ And under the interface section we can get the abi.
 
 #### From Remix
 Uploading a contract directly from the Remix IDE is not a problem.
-Go to the contract section on the rightside of the screen. 
+Go to the contract section on the right side of the screen. 
 Expand the contract and press the (red) __create__ button.
 The mist transaction box will popup where a password is needed.
 Adjust the amount of gas when needed (only with large contracts).
-When the contract has deployed succesfully, the address of the contract will be returned.
+When the contract has deployed successfully, the address of the contract will be returned.
 
 #### From commandline
 It's recommended to use Remix to compile the contract before using the commandline, but the commandline can also do the compiling (as seen [here](https://ethereum.gitbooks.io/frontier-guide/content/compiling_contract.html)).
 
 Now for __deploying__ it onto the chain through the command line. 
-Let's go again to the contract section on the righthand side of the Remix IDE and expand the contract that is ready to deploy. 
+Let's go again to the contract section on the right hand side of the Remix IDE and expand the contract that is ready to deploy. 
 Click on "Contract details (bytecode, interface etc.)" and go to the web3 deploy section.
 __2 commands__ will be displayed.
-Enter the 2 commands __seperately__ in the javascript (geth) console.
+Enter the 2 commands __separately__ in the javascript (geth) console.
 Once the contract is mined, the contract address will be shown.
 
 <div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
@@ -698,7 +705,7 @@ Then press the execute button and type in the password.
 Mist does a __call__ to the method before the actual transaction.
 This means it can __predict__ if the transaction will succeed and it will clearly warn us if it won't succeed.
 When failing, always check if the transaction is payable.
-Aswell check if there wa enogh ether send.
+As well check if there was enough ether send.
 Most people forget to send ether with the transaction.
 
 ## Ethereum and Java with web3j
@@ -800,7 +807,7 @@ We added this java class to our project in the model folder.
 So let's use this class. 
 In our example the class is called Vending.
 To load our vending contract, we need __credentials__ to sign in on the chain.
-It is recomended to use the credentials of the wallet that uploaded the contract.
+It is recommended to use the credentials of the wallet that uploaded the contract.
 
 
  ```java
@@ -849,7 +856,7 @@ Note that these variables must be __public__ on the solidity contract level and 
 So now let's use the famous __transactions__. 
 Our contract contains an array in which users are stored through their address (wallet ID). This is an extra security check on the contract level. 
 So only users can __invoke__ certain methods. The function addNewUser() adds an address (wallet ID) to the array. 
-First we create an Address from the walletID. Then we wait untill there is a __TransactionReceipt__ from the method. 
+First we create an Address from the walletID. Then we wait until there is a __TransactionReceipt__ from the method. 
 A transactionreceipt will be given when the transaction is __mined__ / added to the chain.
 
  ```java
@@ -867,7 +874,7 @@ A transactionreceipt will be given when the transaction is __mined__ / added to 
  ```
 
  With the transaction above, the person (credentials) who loaded the contract at the start needs to __pay__ for this transaction. 
- Aswell on security level, you want to invoke the transaction from the current __logged in user__. 
+ As well on security level, you want to invoke the transaction from the current __logged in user__. 
  Because there are admins and normal users and they have different permissions. 
  Let's take a look how we can invoke a function from the contract with the __credentials__ of the current user.
 
@@ -892,7 +899,7 @@ A transactionreceipt will be given when the transaction is __mined__ / added to 
  Before we can invoke these functions with the current logged in user __account__, this account needs to be unlocked. When you create an account, it is by default locked. 
  To __unlock__ accounts we use __parity__. 
  To use parity, we add `Parity parity` as new local variable and add following code to our constructor from the service class: `this.parity = Parity.build(new HttpService());`. 
- Then we unlock the given walletID and password with parity. Which is aswell default set on http://localhost:8545/.
+ Then we unlock the given walletID and password with parity. Which is as well default set on http://localhost:8545/.
  ```java
  ...
  PersonalUnlockAccount currentacc = parity.personalUnlockAccount(currentwalletID,passwordWallet, duration).send();
@@ -924,7 +931,7 @@ We just __sign and send__ the transaction.
 In the response, we'll check for the __transactionhash__. 
 If this is null we know there was something wrong with the transaction. 
 Some causes may be: not enough ether send, gas limit is below the asked gas, wrong credentials, bad nonce. 
-But if everything was succesfull and valid, the transaction is pending and waiting to be mined. 
+But if everything was successful and valid, the transaction is pending and waiting to be mined. 
 We'll keep asking for the transaction receipt. 
 When it is not null anymore, the transaction is added to the blockchain.
 
@@ -1032,10 +1039,10 @@ When we put all the small pieces of code from above in the service class you'll 
  ```
 
 #### New wallet
-Making a new wallet is done ** with __parity__ in 1 command. 
-You just give a password and it will create the new wallet. 
+Making a new wallet can be done with __parity__ in 1 command. 
+Just give a password and it will create the new wallet. 
 In our example we return the address (wallet ID) when creating the new wallet. 
-If you want to send it async you replace the `.send()` by `.sendAsync().get();`.
+If you want to send it async, just replace the `.send()` by `.sendAsync().get();`.
 
 ```java
     public String makeNewWallet(String password) throws ExecutionException, InterruptedException, IOException {
@@ -1048,7 +1055,7 @@ If you want to send it async you replace the `.send()` by `.sendAsync().get();`.
 But wouldn't it be great if we could __observe__ our blocks and transactions? 
 Of course! 
 This is not a problem with web3j. 
-The following function will subscribe to the transaction ** and print the __hashes__ from the transactions.
+The following function will subscribe to the transactions and print the __hashes__ from the transactions.
 ```java
 ...
 public void subscribeToTransactionsandBlocks(){
