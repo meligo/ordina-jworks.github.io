@@ -10,8 +10,8 @@ comments: true
 
 
 > Last time we gave an introduction about blockchain.
-Now we will dive deeper in it. Set up our first blockchain, be coding a smart contract, deploying this contract and implementing it with Java. 
-For this example we won't be deploying it on the Ethereum network, but locally in our development environment.
+Now we will dive deeper into ** it. We will set up our first blockchain, code a smart contract, deploy this contract and implement it with Java. 
+For this example we won't be deploying it on the Ethereum network, but locally in our development environment **.
 
 # Topics
 
@@ -26,14 +26,13 @@ Following topics will be discussed in our second blockchain article:
 7. [Deploying and using the contract](#deploying-and-using-the-contract)
 8. [Ethereum and Java with web3j](#ethereum-and-java-with-web3j)
 9. [Conclusion](#conclusion)
-10. [Recommended reading](#recommended-reading)
 
 
 # Intro
 In this post we will teach you how to __setup__ your first __private__ ethereum chain, code your first __smart contract__ and integrate it with spring boot.
 We will be using [Ethereum](https://www.ethereum.org) to create our first blockchain.
 We made this choice because it seemed to be the most user-friendliest and it's pretty well documented for a beginner.
-If you would like to use Hyperledger to create your blockchain, then it is recommended to use Go as a chaincode (IBMs version of Smart contracts).
+If you would like to use Hyperledger to create your blockchain, then it is recommended to use the Go programming language to write the [chaincode](https://github.com/IBM-Blockchain/learn-chaincode) ** (IBMs version of Smart contracts).
 
 # What do I need?
 We will need a few things to successfully setup a network and create smart contracts.
@@ -52,14 +51,14 @@ Information about the other ones can be found [here](http://ethdocs.org/en/lates
 We use Geth because it is the easiest to setup and to get started with.
 Geth is also the __default__ for Mist.
 Geth had some problems with spam attacks in the late 2016, that's why some people go for Parity.
-Parity didn't had these problems because it is faster in reverting states. 
+Parity didn't have ** these problems because it is faster in reverting states. 
 This is a [heap vs stack problem](https://www.reddit.com/r/ethereum/comments/55v4nk/geth_vs_parity/) that might be solved by the time you are reading this article.
-We will be using a __private test network__, so it wwon't be a problem.
+We will be using a __private test network__, so it won't be a problem.
 
 ### Setting up Geth
 Let's start with downloading and installing Geth. 
 [Here](https://geth.ethereum.org/downloads/) we can find the latest release installer (Windows) and archive. 
-When testing the contract on the public test network, we just can use following command:
+When connecting to the public test network, we just can use following command:
 ```
 geth --testnet --fast --cache=512 console
 ``` 
@@ -74,7 +73,7 @@ The fast flag avoids processing the entire history of the Ethereum network, whic
 The recommended range is between 512MB and 2GB. 
 The default is 16MB.
 
-Another one that is very useful is the `--jitvm` flag. 
+Another one that can be ** very useful is the `--jitvm` flag. 
 This is the just-in-time virtual machine that can do further optimizations. 
 You can read more about that [here](https://blog.ethereum.org/2016/06/02/go-ethereums-jit-evm/)
 
@@ -109,7 +108,7 @@ It's also better to __randomize__ `"nonce" : "0x2285182ebf7fe31c"` to make sure 
 `"difficulty" : "0x400"` can be altered to make it easier or harder to mine a transaction.
 The file should be saved as a __json__ file. 
 For example `CustomGenesis.json`.
-__Every__ node that connects to your private network should be initialized with your custom genesis file!
+__Every node__ ** that connects to your private network should be initialized with your custom genesis file!
 To start the __initialization__ of your node use following command: 
 
 ```
@@ -170,7 +169,7 @@ We do this by using the following command:
 personal.newAccount("password")
 ```
 
-*Account creation can also be done with [mist](#a-look-at-mist)*
+*Account creation can also be done with mist you can jus skip ahead to [here](#a-look-at-mist) if you don't want to use the cmd* **
 
 We can now start the miner. 
 The miner is needed to add transactions to the chain. 
@@ -198,22 +197,22 @@ The response should be something similar like this:
 ``` 
 
 When running every node locally on the same machine, we need to alter the port from `[::]:30303` to whatever port we are connecting to (the `[::]` can stay there). 
-If it is running the nodes in a local network then alter  `[::]` to the __local ip__ of the node we're connecting to or the public ip if we're connecting to a node outside of your network. 
-The command to add the nodes is `admin.addPeer("enode of the peer you want to connect to")`. 
+If we are ** running the nodes in a local network then alter  `[::]` to the __local ip__ of the node we're connecting to or the public ip if we're connecting to a node outside of your network. 
+The command to add the nodes is `admin.addPeer("enode of the peer you want to connect to")` 
 ```
-    admin.addPeer("enode://de9e751faf75e9e4dc570c35379a4c22281fecec4bbedb1e1f69b230da1946f7f80b286ceab2928fb92fb37ce1eb5ce919bc97005680445c8be300c40349a31c@192.168.0.2:30303?discport=0")`.
+    admin.addPeer("enode://de9e751faf75e9e4dc570c35379a4c22281fecec4bbedb1e1f69b230da1946f7f80b286ceab2928fb92fb37ce1eb5ce919bc97005680445c8be300c40349a31c@192.168.0.2:30303?discport=0")`
 ```
 
 To check the connected nodes use the command `admin.peers`.
 
-We have now succesfully setup a __private__ test network with __multiple nodes__ and miners (a miner per node). Note that we are mining test ether and not real ether. In this setup a miner per node is required.
+We have now succesfully setup a __private__ test network with __multiple nodes__ and miners (a miner per node). Note that we are mining test ether and not real ether. In this setup a miner for each ** node is required.
 
 ## A look at Mist
 Mist is a __tool__ to browse and use Dapps (Decentralized Apps). 
 We will be using this more as a UI for our contract testing on the blockchain. 
-Just download it [here](https://github.com/ethereum/mist/releases).
+You can ** download it [here](https://github.com/ethereum/mist/releases).
 
-When skipped the __account__ setup on Geth in the previous section, don't worry. We will go over that again, but within Mist.
+If you already have your account in the previous section you don't have to do it again here but it might be useful to see how the interface works.
 
 <div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
     <div class="col-md-offset-3 col-md-6" style="padding: 0;">
@@ -251,13 +250,13 @@ They all don't really do that much.
 
 <div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
     <div class="col-md-offset-3 col-md-6" style="padding: 0;">
-	    {% include image.html img="/img/blockchain/mist-remix.png" alt="mist open remix ide" title="Finding Remix IDE" caption="Open the remix IDE" %}
+	    {% include image.html img="/img/blockchain/mist-remix.png" alt="mist open remix ide" title="Finding Remix IDE" caption="Opening the remix IDE" %}
     </div>
 </div>
 
 <div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
     <div class="col-md-offset-3 col-md-6" style="padding: 0;">
-	    {% include image.html img="/img/blockchain/remix-ide.png" alt="remix ide" title="The remix ide" caption="Remix IDE first open" %}
+	    {% include image.html img="/img/blockchain/remix-ide.png" alt="remix ide" title="The remix ide" caption="Remix IDE first opening" %}
     </div>
 </div>
 
@@ -296,7 +295,7 @@ If you are creating a token contract please take the [ERC20 token standard](http
 This is a valid contract, but it won't do anything. 
 Now a short explanation about the code above. 
 
-`address private owner;` is a private variable. Only this contract needs to know who the owner is. The owner is used to restrict some functions later.
+`address private owner;` is a private variable. Only this contract needs to know who the owner is. The owner is used to restrict some functions later on **.
  
  ```
  function FirstContract(){
@@ -385,7 +384,7 @@ By multiply by 1 finney we get the wei value.
 __Currencies__ are also always in __uint__ in Solidity.
 
 Now some explanation of the function:
- * `` payable `` This is a modifier which allows you to send ether with the function.
+ * `` payable `` This is a modifier which allows you to send ether with the function. Modifiers will be explained a little further in the article **.
  * ``msg.value`` Gives the amount of ether, in wei, that the user send with their transaction. 
  * ``if(!client.send(change)) throw;`` Send the change back to the sender. 
 If it fails then revert state to before the call was made.
@@ -396,9 +395,9 @@ We will expand this method later.
 
 ```
   function resupply(int amount) payable returns (int) {
-  if(amount<=0 && stock + amount > maxStock) throw;
+    if(amount<=0 && stock + amount > maxStock) throw;
   
-  stock += amount;
+    stock += amount;
           
     return stock;
   }
@@ -434,7 +433,7 @@ The next step is adding our stakeholders.
  ```
  
 Here we use the `internal` modifier. 
-Functions and state variables using this modifier can only be accessed __internally__ (i.e. from within the current contract or contracts deriving from it), without using this.
+Functions and state variables using this modifier can only be accessed __internally__ (i.e. from within the current contract or contracts deriving from it) **.
 We decided to keep half of the amount in the contracts wallet to buy from the supplier when the stock is at its minimum.
 The other half is the profit.
 We'll be dividing it over the stakeholders. 
@@ -501,9 +500,11 @@ contract Supplier {
 
 ```
 
+//TODO alter the fallback function security
+
 This is a pretty basic contract.
 It has the price of the product and a function to withdraw the money to the owner's account.
-`this.balance` is built in to get the balance of a contract.
+`this.balance` is built in to get the balance of a contract. 
 
 We will need to make some changes to the first Vending contract. 
 Add a place to store the supplier contract and the supplier contract address `Supplier s;`.
@@ -613,12 +614,23 @@ Method overloading can be used for this.
 
 You can implement some getters and setters and you'll have a decent basic contract.
 
-//TODO add pictures
 ## Deploying and using the contract
 There are multiple ways to deploy a contract.
 We will be discussing 3 of them.
 
 ### Deploy
+
+<div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
+    <div class="col-md-offset-3 col-md-6" style="padding: 0;">
+	    {% include image.html img="/img/blockchain/deploy-steps.png" alt="Mist contract deployment steps" title="These are the steps necessary to deploy a contract" %}
+    </div>
+</div>
+
+<div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
+    <div class="col-md-offset-3 col-md-6" style="padding: 0;">
+	    {% include image.html img="/img/blockchain/transaction-box.png" alt="Transaction Box" title="These are the steps necessary confirm a transaction" %}
+    </div>
+</div>
 
 #### From Mist
 This is the __easiest__ way to upload a contract to the blockchain.
@@ -633,6 +645,12 @@ Just type the password and the contract is ready to get mined!
 So don't forget to start the miner of the node.
 When uploading huge contracts, it is sometimes necessary to increase the amount of gas added to the contract.
 
+<div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
+    <div class="col-md-offset-3 col-md-6" style="padding: 0;">
+	    {% include image.html img="/img/blockchain/command-line-upload-requirements.png" alt="The requirements for watching" title="Where to find the necessary data to watch a contract" %}
+    </div>
+</div>
+
 There is a __watch function__ in Mist. 
 Which allows us to watch a __contract__ that is already __in use__ on the chain.
 So we can use this contract without uploading it again and creating a new version of this contract. 
@@ -640,6 +658,12 @@ For this to work we'll need the address and the abi from the in-use contract to 
 The abi can be found in remix in the contract section on the rightside under the contract.
 There we can select "Contract details (bytecode, interface etc.)".
 And under the interface section we can get the abi.
+
+<div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
+    <div class="col-md-offset-3 col-md-6" style="padding: 0;">
+	    {% include image.html img="/img/blockchain/remix-deploy-contract.png" alt="Deploying from remix" title="The steps to deploy from Remix" %}
+    </div>
+</div>
 
 #### From Remix
 Uploading a contract directly from the Remix IDE is not a problem.
@@ -658,6 +682,12 @@ Click on "Contract details (bytecode, interface etc.)" and go to the web3 deploy
 __2 commands__ will be displayed.
 Enter the 2 commands __seperately__ in the javascript (geth) console.
 Once the contract is mined, the contract address will be shown.
+
+<div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
+    <div class="col-md-offset-3 col-md-6" style="padding: 0;">
+	    {% include image.html img="/img/blockchain/using-a-contract.png" alt="Using the contract" title="Steps to use the pay method" %}
+    </div>
+</div>
 
 ### Using a contract.
 Using the contract and its functions is recommended through Mist for beginners.
@@ -741,10 +771,7 @@ Android:
 ```
 
 #### Start client
-Start your Ethereum client if you didn't already have one running.
-```
-geth --rpcapi personal,db,eth,net,web3,parity --rpc --testnet
-```
+[Start](#setting-up-your-ethereum-client) your Ethereum client if you didn't already have one running.
 
 #### Start requests
 For our purpose we'll make a Web3jService.java class in our spring boot application.
@@ -792,7 +819,7 @@ public class Web3jService {
    ...
 }
  ```
-#### Calling contant methods a.k.a. getters
+#### Calling constant methods a.k.a. getters
 So now we have the contract loaded in our vendingContract object. 
 Let's get some values of the contract. We will create following functions: getStock, getMaxStock and getMinStock. 
 Because we are __not altering the state__ of the contract, but just using __'getters'__ we use the Type property.
@@ -1005,7 +1032,10 @@ When we put all the small pieces of code from above in the service class you'll 
  ```
 
 #### New wallet
-Making a new wallet is done the easiest way with __parity__ in 1 command. You just give a password and it will create the new wallet. In our example we return the address (wallet ID) when creating the new wallet. If you want to send it async you replace the `.send()` by `.sendAsync().get();`.
+Making a new wallet is done ** with __parity__ in 1 command. 
+You just give a password and it will create the new wallet. 
+In our example we return the address (wallet ID) when creating the new wallet. 
+If you want to send it async you replace the `.send()` by `.sendAsync().get();`.
 
 ```java
     public String makeNewWallet(String password) throws ExecutionException, InterruptedException, IOException {
@@ -1018,7 +1048,7 @@ Making a new wallet is done the easiest way with __parity__ in 1 command. You ju
 But wouldn't it be great if we could __observe__ our blocks and transactions? 
 Of course! 
 This is not a problem with web3j. 
-Following function will subscribe and print the __hashes__ from the transactions.
+The following function will subscribe to the transaction ** and print the __hashes__ from the transactions.
 ```java
 ...
 public void subscribeToTransactionsandBlocks(){
@@ -1046,8 +1076,13 @@ public void subscribeToTransactionsandBlocks(){
  ```
 
 # Conclusion
-
-# Recommended reading
+We learned a lot from researching the technologies we used for this project, but there is still a lot more to learn out there.
+The technologies are evolving at an enormous rate.
+As we see it right now, there are two big options to create your project in blockchain. 
+You have Ethereum (Solidity) and Hyperledger (Go) in combination with BigchainDB or the InterPlanetary File System as data storage.
+The InterPlanetary File System (ipfs) is protocol designed to store files in a decentralized manner.
+For more information about Ethereum, Hyperledger and BigChainDB you can view our [previous post]("/2017-05-10-Blockchain-Introduction#existing-platforms").
+The technologies mentioned above are the "blockchain stacks" we see the most in the current ongoing projects.
 
 
 
