@@ -556,7 +556,11 @@ if(!s.buyStock.value(weiToSend)(amount)) throw;
 The method pays the supplier with the price that is defined in the supplier's contract.
 We got the price by following command `s.priceInFinney()`.
 Converting the price into wei is done by multiplying by 1 finney.
-Then we multiply that by the amount we want to order and we add the current message value minus the supplier price of a product because the payment for the current transaction has not been added to the balance of the contract.  
+Then we multiply that by the amount we want to order. 
+We add the current message value minus the supplier price of a product, because the payment for the current transaction has not yet been added to the balance of the contract.
+The next line is something new.
+If we append `.value(weiToSend)` to the function call, we can pass wei to the next function.
+This function must be payable. 
 If it fails, we will revert the state to before the call was done.
 
 We did some __security__ checks in the contracts.
@@ -637,9 +641,10 @@ These functions can be used with __multiple__ user groups.
 For example with admins and normal users.
 Method overloading can be used for this.
 
-Another thing we can do is create a modifier for this: 
+Another thing we can do, is create a modifier for the following code block: 
 
 ```
+...
 if(msg.value >( finneyPrice * 1 finney)){
     uint change = msg.value - (finneyPrice * 1 finney);
                   
@@ -649,9 +654,10 @@ if(msg.value >( finneyPrice * 1 finney)){
         if(!client.send(msg.value)) throw;
         throw;
     }
+...
 ``` 
 
-We can replace it then with the following modifier:
+We can replace it with the following modifier:
 
 ```
 modifier costs(uint _amount) {
@@ -663,9 +669,11 @@ modifier costs(uint _amount) {
 ```
 
 You can implement some getters and setters and you'll have a decent contract.
-You can also have a look at [events](http://solidity.readthedocs.io/en/develop/contracts.html#events) because many UIs from Dapps use this to comunicate with the blockchain, we didn't go over this because it is pretty basic.
-This can also be useful for debugging and/or error catching.
-Another thing you can look at are the [Security Considerations](http://solidity.readthedocs.io/en/develop/security-considerations.html) and the [Common Patterns](http://solidity.readthedocs.io/en/develop/common-patterns.html).
+
+[Events](http://solidity.readthedocs.io/en/develop/contracts.html#events) are used by many UIs from Dapps to comunicate with the blockchain.
+We didn't go over this, because it is pretty basic.
+This can also be very useful for debugging and/or error catching.
+Something else you can look at is the [Security Considerations](http://solidity.readthedocs.io/en/develop/security-considerations.html) and the [Common Patterns](http://solidity.readthedocs.io/en/develop/common-patterns.html) from the Solidity docs.
 
 ### The complete code
 ```
