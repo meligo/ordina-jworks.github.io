@@ -1405,6 +1405,12 @@ public void subscribeToTransactionsandBlocks(){
 ...
  ```
 
+### Events
+The smart contract fires an event when there occurs an error or when the transaction succeeded.
+To improve our backend web3 service, we could listen to these events instead of waiting for the transaction receipt.
+These events have custom error strings.
+Due to the end of our intern we couldn't implement the event listener in the backend.
+
 # Conclusion
 We learned a lot from researching the technologies we used for this project, but there is still a lot more to learn out there.
 The technologies are evolving at an enormous rate.
