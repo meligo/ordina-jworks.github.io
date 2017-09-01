@@ -27,12 +27,12 @@ We are using an example architecture, just to visualize how security flows throu
 The components are crucial for building a cloud-native architecture. 
 The technology can differ from project to project. 
 Since we are visualized human beings, you can see where we are in our journey by looking at the topic names. 
-* User Authentication & Authorization Server: [Spring Cloud Security OAuth2](https://goo.gl/LZdjJO)
-* Service Registry: [Spring Cloud Eureka](https://goo.gl/J4pBTi)
-* Resilience: [Spring Cloud Hystrix](https://goo.gl/Qqyza8)
-* Load Balancer & Routing: [Spring Cloud Zuul](https://goo.gl/qRCQAB)
-* Communication client: [Spring Cloud Feign](https://goo.gl/tTUYKT)
-* Externalized Config: [Spring Cloud Config Server](https://goo.gl/cKFP88)
+* User Authentication & Authorization Server: [Spring Cloud Security OAuth2](https://spring.io/guides/tutorials/spring-boot-oauth2/)
+* Service Registry: [Spring Cloud Eureka](https://spring.io/blog/2015/01/20/microservice-registration-and-discovery-with-spring-cloud-and-netflix-s-eureka)
+* Resilience: [Spring Cloud Hystrix](https://spring.io/guides/gs/circuit-breaker/)
+* Load Balancer & Routing: [Spring Cloud Zuul](https://spring.io/guides/gs/routing-and-filtering/)
+* Communication client: [Spring Cloud Feign](http://projects.spring.io/spring-cloud/spring-cloud.html#spring-cloud-feign)
+* Externalized Config: [Spring Cloud Config Server](https://cloud.spring.io/spring-cloud-config/)
 
 <div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
   <div class="col-md-offset-3 col-md-6" style="padding: 0;">
@@ -117,7 +117,7 @@ The trusted service can request a JWT using only its client id and client secret
 when the client is requesting access to the protected resources under its control, or those of another resource owner that have been previously arranged with the authorization server (the method of which is beyond the scope of this specification).
 It is very important that the client credentials grant type MUST only be used by confidential clients.
 
-* The gateway authenticates with his app id and secret
+* The zuul authenticates with his app id and secret
 * The UAA validates the credentials and returns a valid JWT token
 
 <a name="JWT" />
@@ -135,7 +135,7 @@ jwt.io provides a quick way to verify whether the encoded JWT that scrolled by i
 One of the challenges in our microservice architecture is Identity propagation.
 After the authentication, the identity of the user needs to be propagated to the next microservice in a trusted way.
 When we want to verify the identity, frequent calls back to the UAA server is inefficient, 
-especially given that communication between microservices is preferred to routing through the gateway whenever possible to minimize latency.
+especially given that communication between microservices is preferred to routing through the zuul whenever possible to minimize latency.
 JSON web tokens is used here to carry along a representation of information about the user.
 In essence, a token should be able to:
 * Know that the request was initiated from a user request
@@ -167,9 +167,9 @@ JWTs are being signed by a public/private key pair (SSL certificates work well w
 Common JWT libraries all support signing.
 
 * The user requests a resource
-* The frontend assembles a request with an Authorization header and a Bearer token inside, fires off the request to the gateway
-* The gateway verifies the token in communication with the UAA server
-* If the token is valid, the gateway redirects the frontend to the correct resource on the proper microservice
+* The frontend assembles a request with an Authorization header and a Bearer token inside, fires off the request to the zuul
+* The zuul verifies the token in communication with the UAA server
+* If the token is valid, the zuul redirects the frontend to the correct resource on the proper microservice
 * The microservice checks for authorization to the resource, if access granted, the correct resource is returned
 
 <a name="uaa" />
@@ -179,12 +179,12 @@ The UAA is a multi tenant identity management service, used as a stand alone OAu
 It’s primary role is as an OAuth2 provider, issuing tokens for client applications to use when they act on behalf of users. 
 It can also authenticate users with their credentials, and can act as an SSO service using those credentials.
 
-For developing the UAA server, we can get our inspiration out of this nice [video](https://youtu.be/EoK5a99Bmjc) of Josh Long.
+For developing the UAA server, we can get our inspiration out of this nice [video](https://youtu.be/EoK5a99Bmjc?t=4) of Josh Long.
 This guide explains how to setup a default UAA server.
 Since this setup does not include generating JSON Web Tokens, an implementation is needed for conversion. 
 On top of that, we will be enabling SSO on our architecture.
 
-Guide for converting access tokens to JSON Web Tokens: [Spring OAuth2 developers guide](https://goo.gl/zwQ3KV)
+Guide for converting access tokens to JSON Web Tokens: [Spring OAuth2 developers guide](https://projects.spring.io/spring-security-oauth/docs/oauth2.html)
 
 <a name="sso" />
 
@@ -192,12 +192,51 @@ Guide for converting access tokens to JSON Web Tokens: [Spring OAuth2 developers
 Now that we got a way to achieve Authentication & Authorization by applying OAuth2 and JWT, we still have one problem.
 By having multi-frontends in our architecture, the user will have to login in each of these applications.
 With Single Sign On we can eradicate this problem by using only one authentication by the user.
-To achieve SSO, we implement this feature in the UAA server. 
+To achieve SSO, we implement this feature in the UAA server & the Zuul service. 
 Since we can have multiple instances of our UAA server for high availability and load, we use Spring session & Redis to share our session between these instances.
 Redis is an open source (BSD licensed), in-memory data structure store, used as a database, cache and message broker. 
 To gain high availability with our redis server, we can use the [sentinel mechanism](https://redis.io/topics/sentinel).
 
-### Configuration
+### Enable OAuth2 SSO flow on the Zuul service
+The `@EnableOAuth2Sso` annotation on the zuul will forward OAuth2 JWT tokens downstream to the services it is proxying.
+
+### Sensitive Headers
+The zuul secures your sensitive headers by blocking these headers downstream (microservice).
+Since the default settings for sensitive headers blocks the Authorization header, we have to open this setting and send these headers downstream.
+You can choose to set the sensitive header per route or globally.
+
+How it works: [Sensitive Headers](https://github.com/spring-cloud/spring-cloud-netflix/blob/master/docs/src/main/asciidoc/spring-cloud-netflix.adoc#cookies-and-sensitive-headers)
+
+#### Zuul Filter
+Based on Netflix’s Zuul, the zuul brings a filter mechanism.
+Filters are capable of performing a range of actions during the routing of HTTP requests and responses.
+This can help you customize security on your incoming and outgoing traffic.
+Review the guide from Netflix about how filters work.
+
+How it works: [Zuul Filters](https://github.com/Netflix/zuul/wiki/How-it-Works)
+
+#### The Token Verifier
+When the frontend sends a request with a token, zuul will first contact a specific uri of the UAA server to check if the token is valid.
+When the token is valid, zuul will redirect the request with token to the proper microservice.
+The grant type we use is client credentials type, where the zuul will connects to the UAA server with a service id and service secret.
+
+{% highlight yml %}
+security:
+  oauth2:
+    resource:
+      loadBalanced: true  <1>
+      tokenInfoUri: http://uaa/oauth/check_token  <2>
+    client:
+      clientId: zuul <3>
+      clientSecret: zuul-secret  <4>
+{% endhighlight %}
+
+1. Configure client load balancing for retrieval of the user information from UAA servers (when you run up multiple nodes and register them in the discovery service)
+2. The endpoint where to check the JWT token
+3. The zuul identifier
+4. The zuul secret
+
+### Configuration UAA
 To add Redis and Spring Session to the classpath, add the following in the pom.xml
 
 {% highlight maven %}
@@ -320,14 +359,15 @@ spring:
     password: '{cipher}FKSAJDFGYOS8F7GLHAKERGFHLSAJ'
 {% endhighlight %}
 
+
 <a name="microservice" />
 
 # Secure your microservice
 When enabling security in your service, the most common issues are developer-induced.
 Either there is a lack of built-in or easy security controls and at the end, we make trade-offs for functionality/features over security.
 Still, we have to think about who can access this functionality and what they can do with it. 
-We enter the phase where we passed the authentication and retrieved a JSON Web Token from our gateway.
-We are in a 'downstream service', where data is load balanced from the gateway. 
+We enter the phase where we passed the authentication and retrieved a JSON Web Token from our zuul.
+We are in a 'downstream service', where data is load balanced from the zuul. 
 Next thing is, how do we decode this JWT? How can we secure our classes and methods with the help of Spring Security?
 
 ## Decoding the JWT
@@ -337,7 +377,7 @@ Spring Security will assemble a principal with this information to use.
 When enabling Spring Security, we want to decode the JWT at the beginning of our chain so that the rest of the chain can work with the data rested in the JWT.
 After decoding the JWT, you know who the user is, what role they have, and all of that.
 The Spring OAuth2 project gives us the mechanism to retrieve a JWT out of the box. 
-When we added the `@EnableOAuth2SSO` annotation to the gateway and `@EnableResourceServer` to our downstream services, we activated the flow to put the token in the header.
+When we added the `@EnableOAuth2SSO` annotation to the zuul and `@EnableResourceServer` to our downstream services, we activated the flow to put the token in the header.
 
 ### Account service
 Let's implement this flow into our account service. 
@@ -356,11 +396,11 @@ First, we have to add two dependencies to our classpath.
 
 To catch the OAuth2 token we have to add the extra `@EnableResourceServer` annotation and because we are using JWT, we need an extra implementation to store and convert our JWT.
 The OAuth2 starter includes the JWT dependency of Spring Security.
-Secondly we make a class to decode our incoming JWT.
+Secondly, we make a class to decode our incoming JWT.
 
 {% highlight java %}
 
-public class UnverifiedJwtAccessTokenConverter extends JwtAccessTokenConverter {
+public class JwtAccessTokenConvertDecoder extends JwtAccessTokenConverter {
 
     private JsonParser objectMapper = JsonParserFactory.create();
 
@@ -391,8 +431,8 @@ And add these as beans to get it working.
 public class ResourceServiceConfiguration extends ResourceServerConfigurerAdapter {
 
     @Bean
-    public UnverifiedJwtAccessTokenConverter accessTokenConverter() {
-        return new UnverifiedJwtAccessTokenConverter();
+    public JwtAccessTokenConvertDecoder accessTokenConverter() {
+        return new JwtAccessTokenConvertDecoder();
     }
 
     @Bean
@@ -433,7 +473,7 @@ Now these authorities can be used for authorizing methods.
 Spring security provides us method based access control where you have the ability to use SPEL expressions as an authorization mechanism.
 There is a lot of options to use for method security but for now we will see the most common ones.
 
-For the full list: [SPEL](https://docs.spring.io/spring-security/site/docs/3.0.x/reference/el-access.html)
+For the full list: [Spring Expression Language](https://docs.spring.io/spring-security/site/docs/3.0.x/reference/el-access.html)
 
 ##### @PreAuthorize
 Most commonly used, PreAuthorize will decide whether a method can actually be invoked or not.
@@ -531,7 +571,22 @@ This will be covered in the part where we go deep dive in securing the microserv
 
 
 # Conclusion
-As we come to the conclusion, we see that security is a critical asset to your architecture.
-Most companies still 
+As we come to the conclusion, we see that security is a critical but complex asset to your architecture.
+So when you are implementing a service, have a secure mindset and always remember to not reinvent the wheel and search for the best practices in security.
 
 
+# Sources
+* [Spring Cloud Eureka](https://spring.io/blog/2015/01/20/microservice-registration-and-discovery-with-spring-cloud-and-netflix-s-eureka)
+* [Spring Cloud Hystrix](https://spring.io/guides/gs/circuit-breaker/)
+* [Spring Cloud Zuul](https://spring.io/guides/gs/routing-and-filtering/)
+* [Spring Cloud Feign](http://projects.spring.io/spring-cloud/spring-cloud.html#spring-cloud-feign)
+* [Spring Cloud Config Server](https://cloud.spring.io/spring-cloud-config/)
+* [Spring Cloud Security OAuth2](https://spring.io/guides/tutorials/spring-boot-oauth2/)
+* [Josh Long UAA intro](https://youtu.be/EoK5a99Bmjc?t=4)
+* [Spring OAuth2 developers guide](https://projects.spring.io/spring-security-oauth/docs/oauth2.html)
+* [Sentinel mechanism](https://redis.io/topics/sentinel)
+* [Sensitive Headers](https://github.com/spring-cloud/spring-cloud-netflix/blob/master/docs/src/main/asciidoc/spring-cloud-netflix.adoc#cookies-and-sensitive-headers)
+* [Zuul Filters](https://github.com/Netflix/zuul/wiki/How-it-Works)
+* [Sentinel configuration](http://docs.spring.io/spring-data/redis/docs/current/reference/html/#redis:sentinel)
+* [Default configuration](https://docs.spring.io/spring-session/docs/current/reference/html5/guides/boot.html#boot-redis-configuration)
+* [Spring Expression Language](https://docs.spring.io/spring-security/site/docs/3.0.x/reference/el-access.html)
