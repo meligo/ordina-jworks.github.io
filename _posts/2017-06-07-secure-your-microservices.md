@@ -68,11 +68,13 @@ Since we don't want everyone to log in separately for different services, we aim
 
 # Using the OAuth2 Protocol
 When searching for a security protocol, we didn't want to reinvent the wheel and looked at what is supported by the Spring framework.
-It depends from case to case which one you will need, do you have third or first party applications accessing your resources? Or both?
-I will explain both OAuth2 & JWT and how they achieve this questions. 
+It naturally depends from case to case which applications is in need of your resources. 
+Is it a third party application like facebook or a first party like your own application? Or both? 
+I will explain both OAuth2 & JWT and how they achieve these questions. 
+
 The OAuth2 delegation protocol can assist us in the creation of scalable microservices,
-it will allow us to secure the user's credentials from third and first party applications and gain access to a microservice through a JWT.
-When applying the OAuth2 framework to our architecture, we will be using three grant types to cover our authentication. 
+it will allow us to secure the user's credentials from third and first party applications and gain access to a microservice through a JSON Web Token.
+When applying the OAuth2 framework to our architecture, we will be using three grant types. 
 These three grant types are different ways to obtain a JWT, some clients are more trusted than others. 
 
 ### OAuth2 Scopes
@@ -126,16 +128,17 @@ It is very important that the client credentials grant type MUST only be used by
 When successfully ending one of these grant type flows, we receive a JWT from the UAA server.
 JSON Web Tokens (pronounced “jot”) are compact, URL friendly and contains a JSON structure.
 The structure is assembled in some standard attributes (called claims), such as issuer, subject (the user’s identity), and expiration time.
+
 There is room available for claims to be customized, allowing additional information to be passed along.
 While building your application, you will likely be told that your JWT is not valid for reasons that are not apparent.
 For security and privacy reasons, it is not a good idea to expose (to the frontend) exactly what is wrong with the login.
-Doing so can leak implementation or user details that could be used maliciously.
-jwt.io provides a quick way to verify whether the encoded JWT that scrolled by in your browser console or your trace log is valid or not.
+Doing so can leak implementation or user details that could be used maliciously. <br />
+[jwt.io](https://jwt.io/) provides a quick way to verify whether the encoded JWT that scrolled by in your browser console or your trace log is valid or not. 
 
 One of the challenges in our microservice architecture is Identity propagation.
-After the authentication, the identity of the user needs to be propagated to the next microservice in a trusted way.
-When we want to verify the identity, frequent calls back to the UAA server is inefficient, 
-especially given that communication between microservices is preferred to routing through the zuul whenever possible to minimize latency.
+After the authentication, the identity of the user needs to be propagated to the next microservice in a trusted way. <br />
+When we want to verify the identity, frequent callbacks to the UAA server is inefficient, 
+especially given that communication between microservices is preferred to routing through the zuul whenever possible to minimize latency. <br />
 JSON web tokens is used here to carry along a representation of information about the user.
 In essence, a token should be able to:
 * Know that the request was initiated from a user request
@@ -150,7 +153,7 @@ In essence, a token should be able to:
 
 ### Dealing with time
 
-When propagating the identity of the user, you don’t want it to last for a infinite of time.
+When propagating the identity of the user, you don’t want it to last for a infinite of time. <br />
 That’s where JWTs come in place, they expire.
 This triggers a refresh token of the identity that results in a new JWT.
 JWTs have three fields that relate to time and expiry, all of which are optional.
@@ -192,7 +195,7 @@ Guide for converting access tokens to JSON Web Tokens: [Spring OAuth2 developers
 Now that we got a way to achieve Authentication & Authorization by applying OAuth2 and JWT, we still have one problem.
 By having multi-frontends in our architecture, the user will have to login in each of these applications.
 With Single Sign On we can eradicate this problem by using only one authentication by the user.
-To achieve SSO, we implement this feature in the UAA server & the Zuul service. 
+To enable SSO, we have to implement this feature in the UAA & Zuul service. 
 Since we can have multiple instances of our UAA server for high availability and load, we use Spring session & Redis to share our session between these instances.
 Redis is an open source (BSD licensed), in-memory data structure store, used as a database, cache and message broker. 
 To gain high availability with our redis server, we can use the [sentinel mechanism](https://redis.io/topics/sentinel).
@@ -268,7 +271,6 @@ public class Application {
 {% endhighlight %}
 
 ### Single Sign On Flow
-
 
 <div class="row" style="margin: 0 auto 2.5rem auto; width: 100%;">
   <div class="col-md-offset-3 col-md-6" style="padding: 0;">
@@ -368,13 +370,14 @@ Either there is a lack of built-in or easy security controls and at the end, we 
 Still, we have to think about who can access this functionality and what they can do with it. 
 We enter the phase where we passed the authentication and retrieved a JSON Web Token from our zuul.
 We are in a 'downstream service', where data is load balanced from the zuul. 
-Next thing is, how do we decode this JWT? How can we secure our classes and methods with the help of Spring Security?
+Next thing to question is, how do we decode this JWT? How can we secure our classes and methods with the help of Spring Security?
 
 ## Decoding the JWT
 It is the responsibility of a microservice (Resource Server) to extract information about the user and client application from the JWT token and make an access decision based on that information.
 With the help of a JWT decoder, it extracts the users information and put it in the security context.
 Spring Security will assemble a principal with this information to use.
 When enabling Spring Security, we want to decode the JWT at the beginning of our chain so that the rest of the chain can work with the data rested in the JWT.
+
 After decoding the JWT, you know who the user is, what role they have, and all of that.
 The Spring OAuth2 project gives us the mechanism to retrieve a JWT out of the box. 
 When we added the `@EnableOAuth2SSO` annotation to the zuul and `@EnableResourceServer` to our downstream services, we activated the flow to put the token in the header.
@@ -463,14 +466,14 @@ The microservice will handle the token as trustworthy since the token is verifie
 ### Securing API endpoints
 At last we're going to secure our resources.
 Spring Security gives us a variety of tools to secure at class/method level.
-Let me point you out the most used one. 
+Let me point you out the most used one.  <br />
 To enable method security add `@EnableGlobalMethodSecurity(prePostEnabled = true)` to your configuration. 
 
 #### Authority 
 For the authorization, Spring Security provides us authorities, extracted from the JWT, the authorities are placed inside a principal.
 This principal will be used throughout the existing security context of your application. 
 Now these authorities can be used for authorizing methods. 
-Spring security provides us method based access control where you have the ability to use SPEL expressions as an authorization mechanism.
+It provides us method based access control where you have the ability to use SPEL expressions as an authorization mechanism.
 There is a lot of options to use for method security but for now we will see the most common ones.
 
 For the full list: [Spring Expression Language](https://docs.spring.io/spring-security/site/docs/3.0.x/reference/el-access.html)
@@ -590,3 +593,4 @@ So when you are implementing a service, have a secure mindset and always remembe
 * [Sentinel configuration](http://docs.spring.io/spring-data/redis/docs/current/reference/html/#redis:sentinel)
 * [Default configuration](https://docs.spring.io/spring-session/docs/current/reference/html5/guides/boot.html#boot-redis-configuration)
 * [Spring Expression Language](https://docs.spring.io/spring-security/site/docs/3.0.x/reference/el-access.html)
+* [JWT decoder](https://jwt.io/) 
