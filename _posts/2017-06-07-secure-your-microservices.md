@@ -70,15 +70,15 @@ Since we don't want everyone to log in separately for different services, we aim
 When searching for a security protocol, we didn't want to reinvent the wheel and looked at what is supported by the Spring framework.
 It naturally depends from case to case which applications is in need of your resources. 
 Is it a third party application like facebook or a first party like your own application? Or both? 
-I will explain both OAuth2 & JWT and how they achieve these questions. 
+I will explain both OAuth2 & JSON Web Token and how they achieve these questions. 
 
 The OAuth2 delegation protocol can assist us in the creation of scalable microservices,
-it will allow us to secure the user's credentials from third and first party applications and gain access to a microservice through a JSON Web Token.
+it will allow us to secure the user's credentials from third and first party applications and gain access to a microservice through a JWT.
 When applying the OAuth2 framework to our architecture, we will be using three grant types. 
 These three grant types are different ways to obtain a JWT, some clients are more trusted than others. 
 
 ### OAuth2 Scopes
-OAuth 2.0 scopes provide a way to limit the amount of access that is granted to a JSON Web Token.
+OAuth 2.0 scopes provide a way to limit the amount of access that is granted to a JWT.
 If the scope is not defined, the client is not limited by scope.
 
 > A JWT issued to a client can be granted READ or/and WRITE access to protected resources.
@@ -139,7 +139,7 @@ One of the challenges in our microservice architecture is Identity propagation.
 After the authentication, the identity of the user needs to be propagated to the next microservice in a trusted way. <br />
 When we want to verify the identity, frequent callbacks to the UAA server is inefficient, 
 especially given that communication between microservices is preferred to routing through the zuul whenever possible to minimize latency. <br />
-JSON web tokens is used here to carry along a representation of information about the user.
+JWT is used here to carry along a representation of information about the user.
 In essence, a token should be able to:
 * Know that the request was initiated from a user request
 * Know the identity that the request was made on behalf of
@@ -184,10 +184,10 @@ It can also authenticate users with their credentials, and can act as an SSO ser
 
 For developing the UAA server, we can get our inspiration out of this nice [video](https://youtu.be/EoK5a99Bmjc?t=4) of Josh Long.
 This guide explains how to setup a default UAA server.
-Since this setup does not include generating JSON Web Tokens, an implementation is needed for conversion. 
+Since this setup does not include generating JWTs, an implementation is needed for conversion. 
 On top of that, we will be enabling SSO on our architecture.
 
-Guide for converting access tokens to JSON Web Tokens: [Spring OAuth2 developers guide](https://projects.spring.io/spring-security-oauth/docs/oauth2.html)
+Guide for converting access tokens to JWTs: [Spring OAuth2 developers guide](https://projects.spring.io/spring-security-oauth/docs/oauth2.html)
 
 <a name="sso" />
 
