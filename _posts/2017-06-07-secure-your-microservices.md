@@ -9,7 +9,7 @@ comments: true
 ---
 
 When developing cloud-native microservices, we need to think about securing our data that is being propagated from one service to another
-and securing our data at rest. So how much security is enough to secure our architecture? Is the user who he tells he is and to what data does he have access to?
+and securing our data at rest. So how much security is enough to secure our architecture? Is the user who he tells he is and which data can he access?
 In this tech post we will cover these questions and guide you on how to apply the security layer to your cloud-native blueprint.
 
 # The Overview Wizard
@@ -174,6 +174,8 @@ Common JWT libraries all support signing.
 * The zuul verifies the token in communication with the UAA server
 * If the token is valid, the zuul redirects the frontend to the correct resource on the proper microservice
 * The microservice checks for authorization to the resource, if access granted, the correct resource is returned
+
+For a deeper dive into JWT, check our tech post about [Digitally signing your JSON](http://ordina-jworks.github.io/security/2016/03/12/Digitally-signing-your-JSON-documents.html)
 
 <a name="uaa" />
 
