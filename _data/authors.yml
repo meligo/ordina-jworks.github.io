@@ -15,14 +15,14 @@ tom_verelst:
   first_name: Tom
   last_name: Verelst
   permalink: /author/tom-verelst/
-  avatar: tom-verelst.png
+  avatar: tom-verelst.jpg
   twitter: tomverelst
   linkedin: tomverelst
   github: tomverelst
   title: Principal Consultant
   title2: Coach
   email: tom.verelst@ordina.be
-  bio: Tom is a senior developer and coach at Ordina Belgium. Some friends like to refer to him as a Java code monkey, which is not completely true! Tom is familiar with many different domains.  He loves to learn about everything. Currently he is very fond of Docker, Go and all things DevOps.<br /><br />In his spare time he likes spending time with friends, going out for a run with his marathon club or just swinging around some drum sticks.
+  bio: Tom is a senior developer at Ordina Belgium. He is very fond of Docker, Go and all things DevOps.
 andreas_evers:
   first_name: Andreas
   last_name: Evers
@@ -68,9 +68,9 @@ tim_ysewyn:
   github: TYsewyn
   permalink: /author/tim-ysewyn/
   title: Principal Consultant
-  title2: Competence Leader API & Microservices
+  title2: Competence Leader Microservices
   email: Tim.Ysewyn@ordina.be
-  bio: Tim is a Principal Consultant at Ordina, where he helps fellow developers discovering top-notch technologies and methodologies as a Competence Leader for API & Microservices. You can also find him working on various parts of the <a href="https://www.spring.io" target="_blank">Spring</a> framework or helping out at <a href="https://ng-be.org" target="_blank">NG-BE</a>. When you can\'t get a hold of him, he will probably be under water since he is also an underwater photographer & rescue diver.
+  bio: Tim is a Principal Consultant at Ordina, where he helps fellow developers discovering top-notch technologies and methodologies as a Competence Leader for Microservices. He also enjoys the different challenges while developing iOS applications with Objective-C and Swift. When not working for Ordina, you can find him working on various parts of the [Spring](https://www.spring.io) framework or helping out at [NG-BE](https://ng-be.org). When you can\'t get a hold of him, he will probably be under water since he is also an underwater photographer.
 bart_blommaerts:
   first_name: Bart
   last_name: Blommaerts
@@ -323,15 +323,3 @@ tim_schmitte:
   title: Java Developer
   email: tim.schmitte@ordina.be
   bio: Tim is a Java Developer at Ordina Belgium. His main focus is on back-end development. He is passionate about Microservices, Domain driven design and refactoring.
-tim_de_grande:
-  first_name: Tim
-  last_name: De Grande
-  twitter: TimDG
-  linkedin: timdegrande
-  permalink: /author/tim-de-grande/
-  avatar: tim-de-grande.jpg
-  title: Principal Consultant
-  title2: Competence Leader Aplication Security
-  email: tim.degrande@ordina.be
-  bio: Tim is a principal Java Consultant at Ordina who is interested in security, cryptography and privacy. As Compentence Leader Application Security, he keeps his colleagues up to date on the latest security news and works to broaden their understanding by giving workshops and classes.
-
